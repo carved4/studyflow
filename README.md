@@ -123,8 +123,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-Your Name - your.email@example.com
-Project Link: [https://github.com/yourusername/studyflow](https://github.com/yourusername/studyflow)
+Your Name - osmith26@adrian.edu
+Project Link: [https://github.com/carved4/studyflow](https://github.com/carved4/studyflow)
 
 ## Acknowledgments
 
