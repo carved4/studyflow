@@ -18,6 +18,19 @@ A comprehensive student productivity application built with React, TypeScript, a
   - Calculate potential grades
   - Track academic progress
 
+- **Study Timer**
+  - Set attainable study goals for yourself
+  - 25 minute timer
+  
+- **GPA Calculator**
+  - Calculate GPA with ease based on credits and grade
+
+    
+- **Assignment Calender**
+  - Keep track of future assignments 
+  - Set priority for due date
+  
+
 ## Tech Stack
 
 - React 18
