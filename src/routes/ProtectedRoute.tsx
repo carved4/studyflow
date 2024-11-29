@@ -4,10 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { Box, Typography } from '@mui/material';
 
 interface ProtectedRouteProps {
-  component: React.ComponentType<{}>;
+  component: React.ComponentType<React.PropsWithChildren<{}>>;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component, children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -26,5 +26,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Compo
     );
   }
 
-  return isAuthenticated ? <Component /> : <Navigate to="/" replace />;
+  return isAuthenticated ? <Component>{children}</Component> : <Navigate to="/" replace />;
 };
