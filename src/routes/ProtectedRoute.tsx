@@ -5,6 +5,7 @@ import { Box, Typography } from '@mui/material';
 
 interface ProtectedRouteProps {
   component: React.ComponentType<React.PropsWithChildren<{}>>;
+  children?: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component, children }) => {
@@ -21,10 +22,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Compo
           height: '100vh' 
         }}
       >
-        <Typography variant="h6">Loading...</Typography>
+        <Typography>Loading...</Typography>
       </Box>
     );
   }
 
-  return isAuthenticated ? <Component>{children}</Component> : <Navigate to="/" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return <Component>{children}</Component>;
 };
