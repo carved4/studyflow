@@ -127,6 +127,38 @@ npm run build
 npm run preview
 ```
 
+## Vercel Deployment Configuration
+
+### Project Setup
+1. Go to [Vercel Dashboard](https://vercel.com/)
+2. Import GitHub repository
+3. Configure Project Settings:
+   - **Root Directory**: `studyflow-react`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Install Command**: `npm install`
+
+### Environment Variables
+Set the following variables in Vercel Dashboard:
+
+#### Firebase Configuration
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
+#### Environment Scopes
+- Production: Always set
+- Preview: Recommended
+- Development: Optional
+
+### Troubleshooting
+- Ensure all environment variables are correctly set
+- Check Vercel build logs for any configuration issues
+- Verify Firebase project settings match environment variables
+
 ## Available Scripts
 
 - `npm run dev` - Start development server
