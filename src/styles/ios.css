@@ -1,0 +1,73 @@
+/* iOS-specific styles */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+}
+
+/* Prevent rubber-band scrolling effect */
+html {
+  overflow: hidden;
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+  position: fixed;
+  width: 100%;
+}
+
+/* Fix for iOS input zoom */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  font-size: 16px !important; /* Prevents zoom on iOS */
+}
+
+/* Fix for iOS button tap highlight */
+button, 
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fix for iOS momentum scrolling */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* Handle notch and safe areas */
+.app-container {
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Fix for iOS hover states */
+@media (hover: hover) {
+  .hover-effect:hover {
+    opacity: 0.8;
+  }
+}
+
+/* Fix for iOS sticky elements */
+.sticky-header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: var(--safe-area-inset-top);
+  z-index: 100;
+  background: #fff;
+}
+
+/* Disable text selection on interactive elements */
+.no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}

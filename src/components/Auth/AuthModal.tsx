@@ -22,6 +22,7 @@ import zxcvbn from 'zxcvbn';
 
 import { signIn, signUp } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useIOSKeyboard } from '../../hooks/useIOSKeyboard'; // Import the useIOSKeyboard hook
 
 interface AuthModalProps {
   open: boolean;
@@ -44,6 +45,36 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { currentUser } = useAuth();
+
+  // Use iOS keyboard hook
+  useIOSKeyboard();
+
+  // Style adjustments for iOS
+  const modalStyle = {
+    position: 'absolute' as const,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
+    maxWidth: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
+    outline: 'none',
+    maxHeight: '90vh',
+    overflowY: 'auto',
+    WebkitOverflowScrolling: 'touch', // Enable momentum scrolling on iOS
+  };
+
+  const inputProps = {
+    style: {
+      WebkitAppearance: 'none', // Remove iOS input styling
+      borderRadius: '4px',
+      fontSize: '16px', // Prevent zoom on iOS
+    },
+    className: 'no-select', // Prevent text selection
+  };
 
   // Login Schema
   const loginSchema = yup.object().shape({
@@ -131,216 +162,211 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
   };
 
   return (
-    <>
-      <Modal
-        open={open}
-        onClose={onClose}
-        aria-labelledby="auth-modal-title"
-      >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-          borderRadius: 2
-        }}>
-          <Typography id="auth-modal-title" variant="h6" component="h2" align="center" gutterBottom>
-            StudyFlow Authentication
-          </Typography>
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="auth-modal-title"
+      disableAutoFocus // Prevent unwanted focus on iOS
+    >
+      <Box sx={modalStyle} className="scroll-container">
+        <Typography id="auth-modal-title" variant="h6" component="h2" align="center" gutterBottom>
+          StudyFlow Authentication
+        </Typography>
 
-          <Tabs 
-            value={activeTab} 
-            onChange={(_, newValue) => {
-              setActiveTab(newValue);
-              setErrorMessage(null);
-            }}
-            centered
-          >
-            <Tab label="Login" />
-            <Tab label="Sign Up" />
-          </Tabs>
-
-          {/* Login Form */}
-          {activeTab === 0 && (
-            <form onSubmit={handleLoginSubmit(onLogin)}>
-              <Controller
-                name="email"
-                control={loginControl}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    margin="normal"
-                    label="Email"
-                    variant="outlined"
-                    error={!!loginErrors.email}
-                    helperText={loginErrors.email?.message}
-                  />
-                )}
-              />
-              <Controller
-                name="password"
-                control={loginControl}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    margin="normal"
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    variant="outlined"
-                    error={!!loginErrors.password}
-                    helperText={loginErrors.password?.message}
-                    InputProps={{
-                      endAdornment: (
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      )
-                    }}
-                  />
-                )}
-              />
-              <Button 
-                type="submit" 
-                variant="contained" 
-                color="primary" 
-                fullWidth 
-                sx={{ mt: 2 }}
-              >
-                Login
-              </Button>
-            </form>
-          )}
-
-          {/* Signup Form */}
-          {activeTab === 1 && (
-            <form onSubmit={handleSignupSubmit(onSignup)}>
-              <Controller
-                name="displayName"
-                control={signupControl}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    margin="normal"
-                    label="Display Name (Optional)"
-                    variant="outlined"
-                  />
-                )}
-              />
-              <Controller
-                name="email"
-                control={signupControl}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    margin="normal"
-                    label="Email"
-                    variant="outlined"
-                    error={!!signupErrors.email}
-                    helperText={signupErrors.email?.message}
-                  />
-                )}
-              />
-              <Controller
-                name="password"
-                control={signupControl}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    margin="normal"
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    variant="outlined"
-                    error={!!signupErrors.password}
-                    helperText={signupErrors.password?.message}
-                    InputProps={{
-                      endAdornment: (
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      )
-                    }}
-                  />
-                )}
-              />
-              {/* Password Strength Meter */}
-              <Box sx={{ 
-                height: 5, 
-                width: '100%', 
-                backgroundColor: passwordStrength === 0 ? 'lightgray' :
-                  passwordStrength === 1 ? 'red' :
-                  passwordStrength === 2 ? 'orange' :
-                  passwordStrength === 3 ? 'yellow' :
-                  'green',
-                marginTop: 1,
-                marginBottom: 1
-              }} />
-              <Controller
-                name="confirmPassword"
-                control={signupControl}
-                defaultValue=""
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    margin="normal"
-                    label="Confirm Password"
-                    type={showPassword ? 'text' : 'password'}
-                    variant="outlined"
-                    error={!!signupErrors.confirmPassword}
-                    helperText={signupErrors.confirmPassword?.message}
-                  />
-                )}
-              />
-              <Button 
-                type="submit" 
-                variant="contained" 
-                color="primary" 
-                fullWidth 
-                sx={{ mt: 2 }}
-              >
-                Sign Up
-              </Button>
-            </form>
-          )}
-        </Box>
-      </Modal>
-
-      {/* Error Snackbar */}
-      <Snackbar
-        open={!!errorMessage}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseError} 
-          severity="error" 
-          sx={{ width: '100%' }}
+        <Tabs 
+          value={activeTab} 
+          onChange={(_, newValue) => {
+            setActiveTab(newValue);
+            setErrorMessage(null);
+          }}
+          centered
         >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
-    </>
+          <Tab label="Login" />
+          <Tab label="Sign Up" />
+        </Tabs>
+
+        {/* Login Form */}
+        {activeTab === 0 && (
+          <form onSubmit={handleLoginSubmit(onLogin)}>
+            <Controller
+              name="email"
+              control={loginControl}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  {...inputProps}
+                  fullWidth
+                  margin="normal"
+                  label="Email"
+                  variant="outlined"
+                  error={!!loginErrors.email}
+                  helperText={loginErrors.email?.message}
+                />
+              )}
+            />
+            <Controller
+              name="password"
+              control={loginControl}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  {...inputProps}
+                  fullWidth
+                  margin="normal"
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  variant="outlined"
+                  error={!!loginErrors.password}
+                  helperText={loginErrors.password?.message}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    )
+                  }}
+                />
+              )}
+            />
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              fullWidth 
+              sx={{ mt: 2 }}
+            >
+              Login
+            </Button>
+          </form>
+        )}
+
+        {/* Signup Form */}
+        {activeTab === 1 && (
+          <form onSubmit={handleSignupSubmit(onSignup)}>
+            <Controller
+              name="displayName"
+              control={signupControl}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  {...inputProps}
+                  fullWidth
+                  margin="normal"
+                  label="Display Name (Optional)"
+                  variant="outlined"
+                />
+              )}
+            />
+            <Controller
+              name="email"
+              control={signupControl}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  {...inputProps}
+                  fullWidth
+                  margin="normal"
+                  label="Email"
+                  variant="outlined"
+                  error={!!signupErrors.email}
+                  helperText={signupErrors.email?.message}
+                />
+              )}
+            />
+            <Controller
+              name="password"
+              control={signupControl}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  {...inputProps}
+                  fullWidth
+                  margin="normal"
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  variant="outlined"
+                  error={!!signupErrors.password}
+                  helperText={signupErrors.password?.message}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    )
+                  }}
+                />
+              )}
+            />
+            {/* Password Strength Meter */}
+            <Box sx={{ 
+              height: 5, 
+              width: '100%', 
+              backgroundColor: passwordStrength === 0 ? 'lightgray' :
+                passwordStrength === 1 ? 'red' :
+                passwordStrength === 2 ? 'orange' :
+                passwordStrength === 3 ? 'yellow' :
+                'green',
+              marginTop: 1,
+              marginBottom: 1
+            }} />
+            <Controller
+              name="confirmPassword"
+              control={signupControl}
+              defaultValue=""
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  {...inputProps}
+                  fullWidth
+                  margin="normal"
+                  label="Confirm Password"
+                  type={showPassword ? 'text' : 'password'}
+                  variant="outlined"
+                  error={!!signupErrors.confirmPassword}
+                  helperText={signupErrors.confirmPassword?.message}
+                />
+              )}
+            />
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              fullWidth 
+              sx={{ mt: 2 }}
+            >
+              Sign Up
+            </Button>
+          </form>
+        )}
+      </Box>
+    </Modal>
+
+    {/* Error Snackbar */}
+    <Snackbar
+      open={!!errorMessage}
+      autoHideDuration={6000}
+      onClose={handleCloseError}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert 
+        onClose={handleCloseError} 
+        severity="error" 
+        sx={{ width: '100%' }}
+      >
+        {errorMessage}
+      </Alert>
+    </Snackbar>
   );
 };
 
