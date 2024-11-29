@@ -84,6 +84,49 @@ npm run dev
 3. Enable Firestore Database
 4. Copy your Firebase configuration to the `.env` file
 
+## Deployment to Vercel
+
+### Prerequisites
+- Vercel Account
+- Firebase Project (for environment variables)
+
+### Deployment Steps
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Login to Vercel:
+```bash
+vercel login
+```
+
+3. Deploy to Vercel:
+```bash
+vercel
+```
+
+### Environment Variables
+Set the following environment variables in Vercel Dashboard:
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
+### Local Development
+```bash
+npm install
+npm run dev
+```
+
+### Production Build
+```bash
+npm run build
+npm run preview
+```
+
 ## Available Scripts
 
 - `npm run dev` - Start development server
