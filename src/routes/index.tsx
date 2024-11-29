@@ -11,11 +11,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Home />} />
       <Route 
         path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
+        element={<ProtectedRoute component={Dashboard} />}
       />
       <Route path="*" element={<NotFound />} />
     </Routes>

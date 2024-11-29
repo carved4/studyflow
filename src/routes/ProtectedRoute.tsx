@@ -1,9 +1,13 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
-export const ProtectedRoute = ({ children }: PropsWithChildren<{}>) => {
+interface ProtectedRouteProps {
+  component: React.ComponentType;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -22,9 +26,5 @@ export const ProtectedRoute = ({ children }: PropsWithChildren<{}>) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
+  return isAuthenticated ? <Component /> : <Navigate to="/" replace />;
 };
