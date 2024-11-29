@@ -221,8 +221,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-Your Name - osmith26@adrian.edu
-Project Link: [https://github.com/carved4/studyflow](https://github.com/carved4/studyflow)
+ - osmith26@adrian.edu
+ - [https://github.com/carved4/studyflow](https://github.com/carved4/studyflow)
 
 ## Acknowledgments
 
