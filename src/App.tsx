@@ -8,7 +8,9 @@ import AuthModal from './components/Auth/AuthModal';
 import { Button, Box } from '@mui/material';
 import './styles/ios.css';
 
-const App: React.FC = () => {
+interface AppProps {}
+
+const App: React.FC<AppProps> = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
@@ -40,6 +42,11 @@ const App: React.FC = () => {
       return () => {
         window.removeEventListener('resize', fixViewportHeight);
         window.removeEventListener('orientationchange', fixViewportHeight);
+        inputs.forEach(input => {
+          input.removeEventListener('blur', () => {
+            window.scrollTo(0, 0);
+          });
+        });
       };
     }
   }, []);
@@ -65,6 +72,6 @@ const App: React.FC = () => {
       </ThemeProvider>
     </AuthProvider>
   );
-}
+};
 
 export default App;

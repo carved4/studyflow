@@ -24,9 +24,10 @@ import {
 
 interface NavbarProps {
   onLoginClick: () => void;
+  className?: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
+const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { currentUser, isAuthenticated } = useAuth();
 
@@ -48,7 +49,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
   };
 
   return (
-    <nav className={`navbar ${isDarkMode ? 'dark-mode' : ''}`}>
+    <nav className={`navbar ${isDarkMode ? 'dark-mode' : ''} ${className}`}>
       <div className="navbar-content">
         <div className="navbar-brand">StudyFlow</div>
         <div className="navbar-menu">
