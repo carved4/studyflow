@@ -159,6 +159,29 @@ Set the following variables in Vercel Dashboard:
 - Check Vercel build logs for any configuration issues
 - Verify Firebase project settings match environment variables
 
+### ⚠️ Security Warning for Environment Variables
+
+**IMPORTANT**: 
+- Never commit sensitive keys directly to your repository
+- Use environment variable management in your deployment platform
+- Rotate your Firebase API keys periodically
+
+### Vercel Environment Variable Setup
+1. Go to your Vercel Project Settings
+2. Navigate to "Environment Variables"
+3. Add these variables:
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+
+### Best Practices
+- Use different Firebase configurations for Development, Staging, and Production
+- Enable Firebase Security Rules
+- Monitor your Firebase project's usage and security
+
 ## Available Scripts
 
 - `npm run dev` - Start development server
