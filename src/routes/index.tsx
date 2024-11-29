@@ -1,11 +1,11 @@
-import React, { cloneElement, ReactElement } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import Home from '../pages/Home';
 import Dashboard from '../pages/Dashboard';
 import NotFound from '../pages/NotFound';
 
-const AppRoutes: React.FC = () => {
+const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
@@ -13,7 +13,7 @@ const AppRoutes: React.FC = () => {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            {cloneElement(<Dashboard />, {})}
+            <Dashboard />
           </ProtectedRoute>
         } 
       />

@@ -2,7 +2,8 @@ import React, {
   createContext, 
   useState, 
   useContext, 
-  useEffect 
+  useEffect,
+  PropsWithChildren
 } from 'react';
 import { 
   User, 
@@ -14,20 +15,20 @@ import { auth, getUserDetails } from '../config/firebase';
 interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
-  userDetails: Record<string, any> | null;
   isLoading: boolean;
+  userDetails: Record<string, any> | null;
 }
 
 // Create the AuthContext with a default value
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   isAuthenticated: false,
-  userDetails: null,
-  isLoading: true
+  isLoading: true,
+  userDetails: null
 });
 
 // AuthProvider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +51,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserDetails(null);
       }
       
-      // Set loading to false once authentication state is determined
       setIsLoading(false);
     });
 
@@ -58,18 +58,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  // Compute authentication status
-  const isAuthenticated = !!currentUser;
+  const value = {
+    currentUser,
+    isAuthenticated: !!currentUser,
+    isLoading,
+    userDetails
+  };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        currentUser, 
-        isAuthenticated, 
-        userDetails, 
-        isLoading 
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -78,10 +75,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 // Custom hook to use the AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
   return context;
 };
