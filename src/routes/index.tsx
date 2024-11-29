@@ -13,7 +13,7 @@ const AppRoutes = () => {
         path="/dashboard" 
         element={
           <ProtectedRoute component={Dashboard}>
-            <Dashboard />
+            {/* Remove the Dashboard child component */}
           </ProtectedRoute>
         }
       />
