@@ -11,7 +11,8 @@ import {
   getFirestore, 
   doc, 
   setDoc, 
-  getDoc 
+  getDoc,
+  serverTimestamp
 } from 'firebase/firestore';
 
 // Firebase configuration
@@ -163,35 +164,35 @@ const createUserDocument = async (
 ) => {
   if (!user) return;
 
-  const userRef = doc(db, 'users', user.uid);
-
   try {
-    // Check if user document already exists
-    const docSnap = await getDoc(userRef);
+    const userRef = doc(db, 'users', user.uid);
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      displayName: additionalData?.displayName || user.displayName,
+      createdAt: serverTimestamp()
+    });
+  } catch (error: unknown) {
+    // Type guard to check if error is an Error object
+    const processError = (err: unknown): Error => {
+      if (err instanceof Error) return err;
+      if (typeof err === 'string') return new Error(err);
+      return new Error('An unknown error occurred');
+    };
+
+    const processedError = processError(error);
     
-    if (!docSnap.exists()) {
-      // Create new user document
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: additionalData?.displayName || user.displayName || '',
-        createdAt: new Date(),
-        role: 'student', // Default role
-        status: 'active'
-      });
-    }
-  } catch (error) {
     console.error('Detailed error creating user document:', {
-      code: error.code,
-      message: error.message,
-      fullError: error
+      message: processedError.message,
+      name: processedError.name,
+      stack: processedError.stack
     });
     
     // More specific error messages
-    if (error.code === 'firestore/permission-denied') {
+    if (processedError.message.includes('permission-denied')) {
       throw new Error('Permission denied. Please contact support.');
     } else {
-      throw new Error(`Failed to create user profile: ${error.message}`);
+      throw new Error(`Failed to create user profile: ${processedError.message}`);
     }
   }
 };
@@ -209,18 +210,27 @@ export const getUserDetails = async (uid: string) => {
     } else {
       throw new Error('User document not found');
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    // Type guard to check if error is an Error object
+    const processError = (err: unknown): Error => {
+      if (err instanceof Error) return err;
+      if (typeof err === 'string') return new Error(err);
+      return new Error('An unknown error occurred');
+    };
+
+    const processedError = processError(error);
+    
     console.error('Detailed error fetching user details:', {
-      code: error.code,
-      message: error.message,
-      fullError: error
+      message: processedError.message,
+      name: processedError.name,
+      stack: processedError.stack
     });
     
     // More specific error messages
-    if (error.code === 'firestore/permission-denied') {
+    if (processedError.message.includes('permission-denied')) {
       throw new Error('Permission denied. Please contact support.');
     } else {
-      throw new Error(`Failed to fetch user details: ${error.message}`);
+      throw new Error(`Failed to fetch user details: ${processedError.message}`);
     }
   }
 };
