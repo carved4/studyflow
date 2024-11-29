@@ -1,5 +1,5 @@
-import React, { ReactElement } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import React, { ReactElement, cloneElement } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Box, Typography, Button } from '@mui/material';
 
@@ -57,5 +57,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  return children;
+  return cloneElement(children);
 };

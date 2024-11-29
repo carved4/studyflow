@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React, { cloneElement, ReactElement } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import Home from '../pages/Home';
@@ -13,7 +13,7 @@ const AppRoutes: React.FC = () => {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            {<Dashboard />}
+            {cloneElement(<Dashboard />, {})}
           </ProtectedRoute>
         } 
       />
