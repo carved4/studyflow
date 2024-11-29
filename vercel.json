@@ -1,6 +1,7 @@
 {
   "version": 2,
   "name": "studyflow-react",
+  "framework": "vite",
   "builds": [
     {
       "src": "package.json",
@@ -13,19 +14,22 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "continue": true
     }
   ],
   "env": {
-    "VITE_FIREBASE_API_KEY": "AIzaSyDxX9BmOh-BiTvRVogY62ksW3-gb04ppWE",
-    "VITE_FIREBASE_AUTH_DOMAIN": "studyflow-ed2ba.firebaseapp.com",
-    "VITE_FIREBASE_PROJECT_ID": "studyflow-ed2ba",
-    "VITE_FIREBASE_STORAGE_BUCKET": "studyflow-ed2ba.firebasestorage.app",
-    "VITE_FIREBASE_MESSAGING_SENDER_ID": "565350524206",
-    "VITE_FIREBASE_APP_ID": "1:565350524206:web:2c833f3a03271727a306bf",
+    "VITE_FIREBASE_API_KEY": "@firebase_api_key",
+    "VITE_FIREBASE_AUTH_DOMAIN": "@firebase_auth_domain",
+    "VITE_FIREBASE_PROJECT_ID": "@firebase_project_id",
+    "VITE_FIREBASE_STORAGE_BUCKET": "@firebase_storage_bucket",
+    "VITE_FIREBASE_MESSAGING_SENDER_ID": "@firebase_messaging_sender_id",
+    "VITE_FIREBASE_APP_ID": "@firebase_app_id",
     "VITE_APP_ENV": "production",
     "VITE_ENABLE_ANALYTICS": "false"
   },
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install"
 }

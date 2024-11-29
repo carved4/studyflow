@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Box, Typography } from '@mui/material';
 
 interface ProtectedRouteProps {
-  component: React.ComponentType;
+  component: React.ComponentType<{}>;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component }) => {
