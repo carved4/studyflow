@@ -8,7 +8,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondary,
   IconButton,
   Dialog,
   DialogTitle,

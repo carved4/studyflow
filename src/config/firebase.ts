@@ -136,18 +136,22 @@ export const signOut = async () => {
     console.log('Starting logout process...');
     await firebaseSignOut(auth);
     console.log('Logout successful');
-  } catch (error) {
-    console.error('Detailed signout error:', {
-      code: error.code,
-      message: error.message,
-      fullError: error
-    });
-    
-    // More specific error messages
-    if (error.code === 'auth/no-current-user') {
-      throw new Error('No user is currently signed in.');
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Detailed signout error:', {
+        message: error.message,
+        name: error.name
+      });
+      
+      // More specific error messages
+      if (error.message.includes('no-current-user')) {
+        throw new Error('No user is currently signed in.');
+      } else {
+        throw new Error(`Logout failed: ${error.message}`);
+      }
     } else {
-      throw new Error(`Logout failed: ${error.message}`);
+      console.error('Unknown error during signout:', error);
+      throw new Error('An unknown error occurred during logout.');
     }
   }
 };
