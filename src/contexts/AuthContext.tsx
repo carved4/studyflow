@@ -15,19 +15,22 @@ interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
   userDetails: Record<string, any> | null;
+  isLoading: boolean;
 }
 
 // Create the AuthContext with a default value
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   isAuthenticated: false,
-  userDetails: null
+  userDetails: null,
+  isLoading: true
 });
 
 // AuthProvider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<Record<string, any> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Subscribe to authentication state changes
@@ -46,6 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setUserDetails(null);
       }
+      
+      // Set loading to false once authentication state is determined
+      setIsLoading(false);
     });
 
     // Cleanup subscription on unmount
@@ -60,7 +66,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{ 
         currentUser, 
         isAuthenticated, 
-        userDetails 
+        userDetails, 
+        isLoading 
       }}
     >
       {children}
