@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Box, Typography, Button } from '@mui/material';
 
-export const ProtectedRoute: React.FC = () => {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -53,5 +57,5 @@ export const ProtectedRoute: React.FC = () => {
     );
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 };
