@@ -12,31 +12,36 @@ const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
-    // Prevent bounce effect on iOS
-    document.body.style.overscrollBehavior = 'none';
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
-    // Fix viewport height on iOS
-    const fixViewportHeight = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    
-    window.addEventListener('resize', fixViewportHeight);
-    window.addEventListener('orientationchange', fixViewportHeight);
-    fixViewportHeight();
+    if (isIOS) {
+      // Prevent bounce effect on iOS
+      document.body.style.overscrollBehavior = 'none';
+      
+      // Fix viewport height on iOS
+      const fixViewportHeight = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      };
+      
+      window.addEventListener('resize', fixViewportHeight);
+      window.addEventListener('orientationchange', fixViewportHeight);
+      fixViewportHeight();
 
-    // Handle iOS keyboard
-    const inputs = document.querySelectorAll('input, textarea');
-    inputs.forEach(input => {
-      input.addEventListener('blur', () => {
-        window.scrollTo(0, 0);
+      // Handle iOS keyboard
+      const inputs = document.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('blur', () => {
+          window.scrollTo(0, 0);
+        });
       });
-    });
 
-    return () => {
-      window.removeEventListener('resize', fixViewportHeight);
-      window.removeEventListener('orientationchange', fixViewportHeight);
-    };
+      return () => {
+        window.removeEventListener('resize', fixViewportHeight);
+        window.removeEventListener('orientationchange', fixViewportHeight);
+      };
+    }
   }, []);
 
   return (
