@@ -105,26 +105,24 @@
       padding: 4px !important;
       gap: 2px !important;
       flex: 1;
-      max-width: 80px;
-      min-width: 50px;
+      max-width: 60px;
+      min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .navbar-item span {
-      display: block;
-      font-size: 0.65rem;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      display: none !important;
     }
 
     .navbar-item svg {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
     }
 
-    /* Adjust main content area */
-    .main-content {
-      padding-bottom: calc(60px + var(--safe-area-inset-bottom));
+    .theme-toggle-label,
+    .auth-button-label {
+      display: none !important;
     }
   }
 

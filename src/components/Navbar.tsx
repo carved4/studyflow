@@ -114,11 +114,10 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
           >
             <IconButton 
               onClick={toggleTheme}
-              sx={{ padding: '4px' }}
+              sx={{ padding: '8px' }}
             >
               {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
-            <span style={{ fontSize: '0.65rem' }}>Theme</span>
           </Box>
           <Box 
             sx={{ 
@@ -131,19 +130,17 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
               <IconButton 
                 color="error" 
                 onClick={handleLogout}
-                sx={{ padding: '4px' }}
+                sx={{ padding: '8px' }}
               >
                 <LogoutIcon />
-                <span style={{ fontSize: '0.65rem' }}>Logout</span>
               </IconButton>
             ) : (
               <IconButton 
                 color="primary" 
                 onClick={onLoginClick}
-                sx={{ padding: '4px' }}
+                sx={{ padding: '8px' }}
               >
                 <LoginIcon />
-                <span style={{ fontSize: '0.65rem' }}>Login</span>
               </IconButton>
             )}
           </Box>
