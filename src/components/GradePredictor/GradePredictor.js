@@ -1,5 +1,4 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
     Box,
     Paper,
@@ -20,139 +19,144 @@ import {
     useTheme,
     Tooltip,
     InputAdornment,
-    Fade,
-    Alert,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
     Add as AddIcon,
     Brightness4 as ThemeIcon,
-    Info as InfoIcon,
 } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
+
+// Utility functions for safe number parsing
+const safeParseFloat = (value, defaultValue = 0) => {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+};
 
 const GradePredictor = () => {
     const muiTheme = useTheme();
     const { isDarkMode, toggleTheme } = useCustomTheme();
+
     const [gradeItems, setGradeItems] = useState([
-        { id: 1, name: '', weight: '', score: '', maxScore: 100 },
+        { id: 1, name: '', weight: '', score: '', maxScore: 100 }
     ]);
+
     const [targetGrade, setTargetGrade] = useState('');
-    const [error, setError] = useState('');
 
-    // Validate total weight
-    useEffect(() => {
-        const totalWeight = gradeItems.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
-        if (totalWeight > 100) {
-            setError('Total weight exceeds 100%');
-        } else {
-            setError('');
-        }
-    }, [gradeItems]);
-
-    const addGradeItem = () => {
+    const addGradeItem = useCallback(() => {
         const newItem = {
-            id: gradeItems.length + 1,
+            id: Date.now(), // Use timestamp to ensure unique ID
             name: '',
             weight: '',
             score: '',
-            maxScore: 100,
+            maxScore: 100
         };
-        setGradeItems([...gradeItems, newItem]);
-    };
+        setGradeItems(prev => [...prev, newItem]);
+    }, []);
 
-    const removeGradeItem = (id) => {
-        if (gradeItems.length > 1) {
-            setGradeItems(gradeItems.filter((item) => item.id !== id));
-        }
-    };
+    const removeGradeItem = useCallback((id) => {
+        setGradeItems(prev => {
+            // Prevent removing the last item
+            if (prev.length <= 1) return prev;
+            return prev.filter(item => item.id !== id);
+        });
+    }, []);
 
-    const updateGradeItem = (id, field, value) => {
-        setGradeItems(gradeItems.map((item) => {
-            if (item.id === id) {
-                // For text fields (name), just update directly without affecting other fields
+    const updateGradeItem = useCallback((id, field, value) => {
+        setGradeItems(prev => 
+            prev.map(item => {
+                if (item.id !== id) return item;
+
+                // Special handling for name field
                 if (field === 'name') {
                     return { ...item, name: value };
                 }
-                
-                // For numerical fields
+
+                // Numerical field handling
                 if (value === '') {
                     return { ...item, [field]: '' };
                 }
 
-                const numValue = Number(value);
-                if (isNaN(numValue)) return item;
-                
-                // Validate numerical inputs
+                const numValue = safeParseFloat(value);
+
+                // Field-specific validations
                 switch (field) {
                     case 'weight':
-                        if (numValue < 0 || numValue > 100) return item;
-                        break;
+                        return numValue >= 0 && numValue <= 100 
+                            ? { ...item, weight: numValue }
+                            : item;
                     case 'score':
-                        if (numValue < 0 || numValue > item.maxScore) return item;
-                        break;
+                        return numValue >= 0 && numValue <= item.maxScore 
+                            ? { ...item, score: numValue }
+                            : item;
                     case 'maxScore':
-                        if (numValue < 0) return item;
-                        // If maxScore is being reduced, check if current score exceeds it
-                        if (item.score !== '' && Number(item.score) > numValue) {
-                            return { ...item, maxScore: numValue, score: numValue };
-                        }
-                        break;
+                        return numValue > 0 
+                            ? { 
+                                ...item, 
+                                maxScore: numValue,
+                                // Adjust score if it exceeds new max score
+                                score: Math.min(item.score, numValue)
+                            }
+                            : item;
+                    default:
+                        return item;
                 }
-                
-                return { ...item, [field]: numValue };
-            }
-            return item;
-        }));
-    };
+            })
+        );
+    }, []);
 
-    const calculateCurrentGrade = () => {
-        let totalWeight = 0;
-        let weightedScore = 0;
-        
-        gradeItems.forEach((item) => {
-            // Only include items that have both weight and score and are valid numbers
-            if (item.weight !== '' && item.score !== '' && item.maxScore !== '' &&
-                !isNaN(Number(item.weight)) && !isNaN(Number(item.score)) && !isNaN(Number(item.maxScore))) {
-                const weight = Number(item.weight);
-                const score = Number(item.score);
-                const maxScore = Number(item.maxScore);
-                
-                const percentage = (score / maxScore) * 100;
-                weightedScore += percentage * (weight / 100);
-                totalWeight += weight;
-            }
-        });
-        
+    const calculateCurrentGrade = useMemo(() => {
+        const validItems = gradeItems.filter(item => 
+            item.weight !== '' && 
+            item.score !== '' && 
+            item.maxScore !== ''
+        );
+
+        if (validItems.length === 0) return '0.00';
+
+        const totalWeight = validItems.reduce((sum, item) => 
+            sum + safeParseFloat(item.weight), 0
+        );
+
         if (totalWeight === 0) return '0.00';
-        const finalGrade = (weightedScore * (100 / totalWeight)).toFixed(2);
-        return isNaN(finalGrade) ? '0.00' : finalGrade;
-    };
 
-    const calculateNeededScore = () => {
-        if (!targetGrade) return 'Set a target';
-        
-        const currentGrade = Number(calculateCurrentGrade());
-        if (isNaN(currentGrade)) return 'Invalid input';
-        
-        const remainingWeight = 100 - gradeItems.reduce((sum, item) => {
-            const weight = Number(item.weight) || 0;
-            return isNaN(weight) ? sum : sum + weight;
-        }, 0);
-        
-        if (remainingWeight <= 0) return 'N/A';
-        
-        const neededScore = ((targetGrade - currentGrade * (1 - remainingWeight / 100)) /
-            (remainingWeight / 100)) * 100;
+        const weightedScore = validItems.reduce((total, item) => {
+            const weight = safeParseFloat(item.weight);
+            const score = safeParseFloat(item.score);
+            const maxScore = safeParseFloat(item.maxScore);
             
-        if (isNaN(neededScore)) return 'Invalid input';
+            const percentage = (score / maxScore) * 100;
+            return total + (percentage * (weight / 100));
+        }, 0);
+
+        return (weightedScore * (100 / totalWeight)).toFixed(2);
+    }, [gradeItems]);
+
+    const calculateNeededScore = useMemo(() => {
+        if (!targetGrade) return 'Set a target';
+
+        const currentGrade = safeParseFloat(calculateCurrentGrade);
+        const validItems = gradeItems.filter(item => item.weight !== '');
+        
+        const usedWeight = validItems.reduce((sum, item) => 
+            sum + safeParseFloat(item.weight), 0
+        );
+
+        const remainingWeight = 100 - usedWeight;
+
+        if (remainingWeight <= 0) return 'N/A';
+
+        const neededScore = ((targetGrade - currentGrade * (1 - remainingWeight / 100)) / 
+            (remainingWeight / 100)) * 100;
+
         if (neededScore < 0) return '0';
         if (neededScore > 100) return 'Impossible';
+        
         return neededScore.toFixed(2);
-    };
+    }, [gradeItems, targetGrade, calculateCurrentGrade]);
 
     const getGradeColor = (grade) => {
-        const numGrade = Number(grade);
+        const numGrade = safeParseFloat(grade);
         if (numGrade >= 90) return 'success.main';
         if (numGrade >= 80) return 'info.main';
         if (numGrade >= 70) return 'warning.main';
@@ -169,38 +173,24 @@ const GradePredictor = () => {
         }}>
             <Box sx={{
                 display: 'flex',
-                justifyContent: 'flex-start',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 mb: 3,
-                flexWrap: 'wrap',
-                gap: 3,
                 px: { xs: 1, sm: 2, md: 3 },
             }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-                    <Typography variant="h4" gutterBottom={false} sx={{ ml: { xs: 0, sm: 1 } }}>
-                        Grade Predictor
-                    </Typography>
-                </Box>
+                <Typography variant="h4" gutterBottom={false}>
+                    Grade Predictor
+                </Typography>
                 <Button
                     variant="outlined"
                     onClick={toggleTheme}
                     color={isDarkMode ? 'secondary' : 'primary'}
                     startIcon={<ThemeIcon />}
-                    sx={{
-                        minWidth: 150,
-                        alignSelf: 'center',
-                        mr: { xs: 0, sm: 1 },
-                    }}
+                    sx={{ minWidth: 150 }}
                 >
                     {isDarkMode ? 'Light Mode' : 'Dark Mode'}
                 </Button>
             </Box>
-
-            {error && (
-                <Fade in={!!error}>
-                    <Alert severity="warning" sx={{ mb: 2 }}>{error}</Alert>
-                </Fade>
-            )}
 
             <Grid container spacing={3}>
                 <Grid item xs={12} md={8}>
@@ -208,7 +198,6 @@ const GradePredictor = () => {
                         elevation={3}
                         sx={{
                             p: 3,
-                            mb: 3,
                             backgroundColor: muiTheme.palette.background.paper,
                         }}
                     >
@@ -216,38 +205,10 @@ const GradePredictor = () => {
                             <Table>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                Assessment
-                                                <Tooltip title="Enter the name of your assessment (e.g., Midterm, Final, Quiz)">
-                                                    <InfoIcon fontSize="small" color="action" />
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                                                Weight (%)
-                                                <Tooltip title="Enter the percentage this assessment contributes to your final grade">
-                                                    <InfoIcon fontSize="small" color="action" />
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                                                Score
-                                                <Tooltip title="Enter your score on this assessment">
-                                                    <InfoIcon fontSize="small" color="action" />
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                                                Max Score
-                                                <Tooltip title="Enter the maximum possible score for this assessment">
-                                                    <InfoIcon fontSize="small" color="action" />
-                                                </Tooltip>
-                                            </Box>
-                                        </TableCell>
+                                        <TableCell>Assessment</TableCell>
+                                        <TableCell align="right">Weight (%)</TableCell>
+                                        <TableCell align="right">Score</TableCell>
+                                        <TableCell align="right">Max Score</TableCell>
                                         <TableCell align="right">Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -262,7 +223,6 @@ const GradePredictor = () => {
                                                     onChange={(e) => updateGradeItem(item.id, 'name', e.target.value)}
                                                     variant="outlined"
                                                     placeholder="Enter assessment name"
-                                                    autoFocus={gradeItems.length > 1 && item.id === gradeItems[gradeItems.length - 1].id}
                                                 />
                                             </TableCell>
                                             <TableCell align="right">
@@ -271,11 +231,11 @@ const GradePredictor = () => {
                                                     size="small"
                                                     value={item.weight}
                                                     onChange={(e) => updateGradeItem(item.id, 'weight', e.target.value)}
-                                                    inputProps={{ min: 0, max: 100, step: "any" }}
                                                     variant="outlined"
                                                     placeholder="0-100"
                                                     InputProps={{
-                                                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                                        inputProps: { min: 0, max: 100 },
+                                                        endAdornment: <InputAdornment position="end">%</InputAdornment>
                                                     }}
                                                     sx={{ maxWidth: 120 }}
                                                 />
@@ -286,9 +246,11 @@ const GradePredictor = () => {
                                                     size="small"
                                                     value={item.score}
                                                     onChange={(e) => updateGradeItem(item.id, 'score', e.target.value)}
-                                                    inputProps={{ min: 0, max: item.maxScore, step: "any" }}
                                                     variant="outlined"
                                                     placeholder="Your score"
+                                                    InputProps={{
+                                                        inputProps: { min: 0, max: item.maxScore }
+                                                    }}
                                                     sx={{ maxWidth: 120 }}
                                                 />
                                             </TableCell>
@@ -298,19 +260,26 @@ const GradePredictor = () => {
                                                     size="small"
                                                     value={item.maxScore}
                                                     onChange={(e) => updateGradeItem(item.id, 'maxScore', e.target.value)}
-                                                    inputProps={{ min: 0, step: "any" }}
                                                     variant="outlined"
                                                     placeholder="Max points"
+                                                    InputProps={{
+                                                        inputProps: { min: 1 }
+                                                    }}
                                                     sx={{ maxWidth: 120 }}
                                                 />
                                             </TableCell>
                                             <TableCell align="right">
-                                                <Tooltip title={gradeItems.length === 1 ? "Cannot remove the last assessment" : "Remove this assessment"}>
+                                                <Tooltip 
+                                                    title={gradeItems.length <= 1 
+                                                        ? "Cannot remove last assessment" 
+                                                        : "Remove assessment"
+                                                    }
+                                                >
                                                     <span>
                                                         <IconButton
                                                             color="error"
                                                             onClick={() => removeGradeItem(item.id)}
-                                                            disabled={gradeItems.length === 1}
+                                                            disabled={gradeItems.length <= 1}
                                                         >
                                                             <DeleteIcon />
                                                         </IconButton>
@@ -326,8 +295,8 @@ const GradePredictor = () => {
                             startIcon={<AddIcon />}
                             variant="outlined"
                             onClick={addGradeItem}
-                            sx={{ mt: 2 }}
                             color="primary"
+                            sx={{ mt: 2 }}
                         >
                             Add Assessment
                         </Button>
@@ -340,9 +309,7 @@ const GradePredictor = () => {
                             sx={{
                                 backgroundColor: muiTheme.palette.background.paper,
                                 transition: 'transform 0.3s ease',
-                                '&:hover': {
-                                    transform: 'scale(1.02)',
-                                }
+                                '&:hover': { transform: 'scale(1.02)' }
                             }}
                         >
                             <CardContent>
@@ -351,9 +318,9 @@ const GradePredictor = () => {
                                 </Typography>
                                 <Typography
                                     variant="h4"
-                                    color={getGradeColor(calculateCurrentGrade())}
+                                    color={getGradeColor(calculateCurrentGrade)}
                                 >
-                                    {calculateCurrentGrade()}%
+                                    {calculateCurrentGrade}%
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -362,9 +329,7 @@ const GradePredictor = () => {
                             sx={{
                                 backgroundColor: muiTheme.palette.background.paper,
                                 transition: 'transform 0.3s ease',
-                                '&:hover': {
-                                    transform: 'scale(1.02)',
-                                }
+                                '&:hover': { transform: 'scale(1.02)' }
                             }}
                         >
                             <CardContent>
@@ -375,33 +340,26 @@ const GradePredictor = () => {
                                     type="number"
                                     fullWidth
                                     value={targetGrade}
-                                    onChange={(e) => setTargetGrade(e.target.value === '' ? '' : Number(e.target.value))}
-                                    inputProps={{ min: 0, max: 100, step: "any" }}
+                                    onChange={(e) => setTargetGrade(e.target.value)}
                                     variant="outlined"
                                     placeholder="Enter target grade"
-                                    sx={{ mb: 2 }}
                                     InputProps={{
-                                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                        inputProps: { min: 0, max: 100 },
+                                        endAdornment: <InputAdornment position="end">%</InputAdornment>
                                     }}
+                                    sx={{ mb: 2 }}
                                 />
-                                <Typography
-                                    color="text.secondary"
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 1,
-                                    }}
-                                >
-                                    Needed Score:
-                                    <Typography
-                                        component="span"
-                                        color={getGradeColor(calculateNeededScore())}
-                                        fontWeight="bold"
+                                <Typography color="text.secondary">
+                                    Needed Score: 
+                                    <Typography 
+                                        component="span" 
+                                        color={getGradeColor(calculateNeededScore)}
+                                        sx={{ ml: 1, fontWeight: 'bold' }}
                                     >
-                                        {calculateNeededScore()}
-                                        {calculateNeededScore() !== 'Set a target' &&
-                                         calculateNeededScore() !== 'N/A' &&
-                                         calculateNeededScore() !== 'Impossible' ? '%' : ''}
+                                        {calculateNeededScore}
+                                        {calculateNeededScore !== 'Set a target' && 
+                                         calculateNeededScore !== 'N/A' && 
+                                         calculateNeededScore !== 'Impossible' ? '%' : ''}
                                     </Typography>
                                 </Typography>
                             </CardContent>
