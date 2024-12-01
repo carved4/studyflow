@@ -3,6 +3,7 @@
   :root {
     --safe-area-inset-top: env(safe-area-inset-top);
     --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --navbar-height: 56px;
   }
 
   /* Prevent rubber-band scrolling effect */
@@ -19,20 +20,25 @@
     overscroll-behavior-y: none;
     position: fixed;
     width: 100%;
+    padding-top: calc(var(--navbar-height) + var(--safe-area-inset-top));
   }
 
   /* Fix for iOS input zoom */
   input[type="text"],
+  input[type="number"],
   input[type="email"],
   input[type="password"],
   textarea {
     font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 8px !important;
+    margin: 4px 0 !important;
   }
 
   /* Fix for iOS button tap highlight */
   button, 
   a {
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   /* Fix for iOS momentum scrolling */
@@ -40,11 +46,12 @@
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
     height: 100%;
+    padding-bottom: var(--safe-area-inset-bottom);
   }
 
   /* Handle notch and safe areas */
   .app-container {
-    padding-top: var(--safe-area-inset-top);
+    padding-top: calc(var(--navbar-height) + var(--safe-area-inset-top));
     padding-bottom: var(--safe-area-inset-bottom);
     min-height: 100vh;
     min-height: -webkit-fill-available;
@@ -53,76 +60,108 @@
   /* iOS-specific navbar adjustments */
   .navbar {
     padding-top: var(--safe-area-inset-top);
-    height: auto !important;
-    min-height: 60px;
+    height: var(--navbar-height) !important;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
+    background-color: var(--bg-secondary);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .navbar-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1rem !important;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 0 1rem !important;
+    height: 100%;
+    max-width: 100%;
+    margin: 0;
   }
 
-  .navbar-menu {
-    display: flex;
-    gap: 0.5rem !important;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  /* Responsive navbar menu */
+  @media (max-width: 768px) {
+    .navbar-menu {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: var(--bg-secondary);
+      padding: 8px 16px;
+      padding-bottom: calc(8px + var(--safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-around;
+      gap: 8px !important;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
 
-  .navbar-item {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    text-decoration: none;
-    padding: 0.25rem 0.5rem !important;
-    border-radius: 4px;
-  }
+    .navbar-item {
+      flex-direction: column;
+      padding: 4px !important;
+      gap: 2px !important;
+      flex: 1;
+      max-width: 80px;
+      min-width: 50px;
+    }
 
-  .navbar-item span {
-    font-size: 0.875rem;
-    display: none; /* Hide text labels on small screens */
-  }
+    .navbar-item span {
+      display: block;
+      font-size: 0.65rem;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  .navbar-item svg {
-    font-size: 1.25rem;
-  }
+    .navbar-item svg {
+      font-size: 1.5rem;
+    }
 
-  /* Adjust container margin for iOS */
-  .container {
-    margin-top: calc(60px + var(--safe-area-inset-top)) !important;
-    padding: 10px;
-  }
-
-  /* Fix for iOS hover states */
-  @media (hover: hover) {
-    .hover-effect:hover {
-      opacity: 0.8;
+    /* Adjust main content area */
+    .main-content {
+      padding-bottom: calc(60px + var(--safe-area-inset-bottom));
     }
   }
 
-  /* Fix for iOS sticky elements */
-  .sticky-header {
-    position: -webkit-sticky;
-    position: sticky;
-    top: var(--safe-area-inset-top);
-    z-index: 100;
-    background: #fff;
+  /* Table adjustments for mobile */
+  @media (max-width: 768px) {
+    table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    td, th {
+      white-space: nowrap;
+      padding: 8px !important;
+    }
+
+    .MuiTableCell-root {
+      padding: 8px !important;
+    }
   }
 
-  /* Disable text selection on interactive elements */
-  .no-select {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
+  /* Fix for iOS form elements */
+  .MuiTextField-root {
+    margin: 8px 0 !important;
+  }
+
+  .MuiInputBase-root {
+    font-size: 16px !important;
+  }
+
+  /* Improve touch targets */
+  .MuiButtonBase-root {
+    min-height: 44px;
+    padding: 8px 16px !important;
+  }
+
+  .MuiIconButton-root {
+    padding: 12px !important;
   }
 }

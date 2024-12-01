@@ -51,34 +51,28 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
   return (
     <nav className={`navbar ${isDarkMode ? 'dark-mode' : ''} ${className}`}>
       <div className="navbar-content">
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            fontWeight: 'bold',
-            fontSize: '1.5rem'
-          }}
-        >
-          StudyFlow
-        </Typography>
-        <div className="navbar-menu">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className="navbar-item"
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </div>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton onClick={toggleTheme}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              fontWeight: 'bold',
+              fontSize: { xs: '1.25rem', sm: '1.5rem' }
+            }}
+          >
+            StudyFlow
+          </Typography>
+          <IconButton 
+            onClick={toggleTheme}
+            sx={{ display: { xs: 'none', sm: 'flex' } }}
+          >
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
+        </Box>
+
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
           {isAuthenticated ? (
             <Button 
               variant="outlined" 
@@ -99,6 +93,61 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
             </Button>
           )}
         </Box>
+
+        <div className="navbar-menu">
+          {navItems.map((item) => (
+            <Link 
+              key={item.path} 
+              to={item.path} 
+              className="navbar-item"
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          ))}
+          <Box 
+            sx={{ 
+              display: { sm: 'none' },
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            <IconButton 
+              onClick={toggleTheme}
+              sx={{ padding: '4px' }}
+            >
+              {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+            <span style={{ fontSize: '0.65rem' }}>Theme</span>
+          </Box>
+          <Box 
+            sx={{ 
+              display: { sm: 'none' },
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            {isAuthenticated ? (
+              <IconButton 
+                color="error" 
+                onClick={handleLogout}
+                sx={{ padding: '4px' }}
+              >
+                <LogoutIcon />
+                <span style={{ fontSize: '0.65rem' }}>Logout</span>
+              </IconButton>
+            ) : (
+              <IconButton 
+                color="primary" 
+                onClick={onLoginClick}
+                sx={{ padding: '4px' }}
+              >
+                <LoginIcon />
+                <span style={{ fontSize: '0.65rem' }}>Login</span>
+              </IconButton>
+            )}
+          </Box>
+        </div>
       </div>
     </nav>
   );
