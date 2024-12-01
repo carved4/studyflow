@@ -210,22 +210,22 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Paper elevation={3} sx={{ p: 3, mb: 3, overflowX: 'auto' }}>
             {error && (
               <Typography color="error" sx={{ mb: 2 }} variant="body2">
                 {error}
               </Typography>
             )}
             
-            <TableContainer>
-              <Table>
+            <TableContainer sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Assessment</TableCell>
-                    <TableCell align="right">Weight (%)</TableCell>
-                    <TableCell align="right">Score</TableCell>
-                    <TableCell align="right">Max Score</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell sx={{ minWidth: { xs: '120px', sm: '150px' } }}>Assessment</TableCell>
+                    <TableCell align="right" sx={{ minWidth: '100px' }}>Weight (%)</TableCell>
+                    <TableCell align="right" sx={{ minWidth: '100px' }}>Score</TableCell>
+                    <TableCell align="right" sx={{ minWidth: '100px' }}>Max Score</TableCell>
+                    <TableCell align="right" sx={{ width: '60px' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -239,7 +239,12 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                           onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
                           placeholder="Enter assessment name"
                           aria-label="Assessment name"
-                          sx={{ minWidth: { xs: '100px', sm: '150px' } }}
+                          sx={{ 
+                            minWidth: { xs: '120px', sm: '150px' },
+                            '& .MuiInputBase-root': {
+                              height: '36px'
+                            }
+                          }}
                         />
                       </TableCell>
                       <TableCell align="right">
@@ -259,7 +264,10 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                             placeholder="0-100"
                             aria-label="Weight"
                             sx={{ 
-                              width: { xs: '70px', sm: '80px' },
+                              width: '80px',
+                              '& .MuiInputBase-root': {
+                                height: '36px'
+                              },
                               '& .MuiInputBase-input': {
                                 px: 1
                               }
@@ -284,7 +292,10 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                             placeholder={`0-${item.maxScore}`}
                             aria-label="Score"
                             sx={{ 
-                              width: { xs: '70px', sm: '80px' },
+                              width: '80px',
+                              '& .MuiInputBase-root': {
+                                height: '36px'
+                              },
                               '& .MuiInputBase-input': {
                                 px: 1
                               }
@@ -309,7 +320,10 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                             placeholder="Max points"
                             aria-label="Max score"
                             sx={{ 
-                              width: { xs: '70px', sm: '80px' },
+                              width: '80px',
+                              '& .MuiInputBase-root': {
+                                height: '36px'
+                              },
                               '& .MuiInputBase-input': {
                                 px: 1
                               }
