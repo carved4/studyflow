@@ -239,6 +239,7 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                           onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
                           placeholder="Enter assessment name"
                           aria-label="Assessment name"
+                          sx={{ minWidth: { xs: '100px', sm: '150px' } }}
                         />
                       </TableCell>
                       <TableCell align="right">
@@ -257,6 +258,12 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                             }}
                             placeholder="0-100"
                             aria-label="Weight"
+                            sx={{ 
+                              width: { xs: '70px', sm: '80px' },
+                              '& .MuiInputBase-input': {
+                                px: 1
+                              }
+                            }}
                           />
                         </Tooltip>
                       </TableCell>
@@ -276,6 +283,12 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                             }}
                             placeholder={`0-${item.maxScore}`}
                             aria-label="Score"
+                            sx={{ 
+                              width: { xs: '70px', sm: '80px' },
+                              '& .MuiInputBase-input': {
+                                px: 1
+                              }
+                            }}
                           />
                         </Tooltip>
                       </TableCell>
@@ -295,6 +308,12 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                             }}
                             placeholder="Max points"
                             aria-label="Max score"
+                            sx={{ 
+                              width: { xs: '70px', sm: '80px' },
+                              '& .MuiInputBase-input': {
+                                px: 1
+                              }
+                            }}
                           />
                         </Tooltip>
                       </TableCell>
