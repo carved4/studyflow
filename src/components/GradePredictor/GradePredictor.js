@@ -70,7 +70,7 @@ const GradePredictor = () => {
     const updateGradeItem = (id, field, value) => {
         setGradeItems(gradeItems.map((item) => {
             if (item.id === id) {
-                // For text fields (name), just update directly
+                // For text fields (name), just update directly without affecting other fields
                 if (field === 'name') {
                     return { ...item, name: value };
                 }
@@ -81,6 +81,7 @@ const GradePredictor = () => {
                 }
 
                 const numValue = Number(value);
+                if (isNaN(numValue)) return item;
                 
                 // Validate numerical inputs
                 switch (field) {
@@ -110,8 +111,9 @@ const GradePredictor = () => {
         let weightedScore = 0;
         
         gradeItems.forEach((item) => {
-            // Only include items that have both weight and score
-            if (item.weight !== '' && item.score !== '' && item.maxScore !== '') {
+            // Only include items that have both weight and score and are valid numbers
+            if (item.weight !== '' && item.score !== '' && item.maxScore !== '' &&
+                !isNaN(Number(item.weight)) && !isNaN(Number(item.score)) && !isNaN(Number(item.maxScore))) {
                 const weight = Number(item.weight);
                 const score = Number(item.score);
                 const maxScore = Number(item.maxScore);
@@ -123,20 +125,27 @@ const GradePredictor = () => {
         });
         
         if (totalWeight === 0) return '0.00';
-        return (weightedScore * (100 / totalWeight)).toFixed(2);
+        const finalGrade = (weightedScore * (100 / totalWeight)).toFixed(2);
+        return isNaN(finalGrade) ? '0.00' : finalGrade;
     };
 
     const calculateNeededScore = () => {
         if (!targetGrade) return 'Set a target';
         
         const currentGrade = Number(calculateCurrentGrade());
-        const remainingWeight = 100 - gradeItems.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
+        if (isNaN(currentGrade)) return 'Invalid input';
+        
+        const remainingWeight = 100 - gradeItems.reduce((sum, item) => {
+            const weight = Number(item.weight) || 0;
+            return isNaN(weight) ? sum : sum + weight;
+        }, 0);
         
         if (remainingWeight <= 0) return 'N/A';
         
         const neededScore = ((targetGrade - currentGrade * (1 - remainingWeight / 100)) /
             (remainingWeight / 100)) * 100;
             
+        if (isNaN(neededScore)) return 'Invalid input';
         if (neededScore < 0) return '0';
         if (neededScore > 100) return 'Impossible';
         return neededScore.toFixed(2);
