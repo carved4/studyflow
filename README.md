@@ -38,6 +38,9 @@ to learn! I encourage users to edit the source code to create an even better app
 
 - React 18
 - TypeScript
+- JavaScripts
+- Tailwind CSS
+- HTML
 - Vite
 - Firebase (Authentication & Firestore)
 - Material-UI
