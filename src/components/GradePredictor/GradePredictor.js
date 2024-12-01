@@ -70,13 +70,34 @@ const GradePredictor = () => {
     const updateGradeItem = (id, field, value) => {
         setGradeItems(gradeItems.map((item) => {
             if (item.id === id) {
-                if (field === 'name') return { ...item, [field]: value };
+                // For text fields (name), just update directly
+                if (field === 'name') {
+                    return { ...item, name: value };
+                }
                 
-                // Handle numerical inputs
-                const numValue = value === '' ? '' : Number(value);
-                if (field === 'weight' && numValue > 100) return item;
-                if (field === 'score' && numValue > item.maxScore) return item;
-                if (numValue < 0) return item;
+                // For numerical fields
+                if (value === '') {
+                    return { ...item, [field]: '' };
+                }
+
+                const numValue = Number(value);
+                
+                // Validate numerical inputs
+                switch (field) {
+                    case 'weight':
+                        if (numValue < 0 || numValue > 100) return item;
+                        break;
+                    case 'score':
+                        if (numValue < 0 || numValue > item.maxScore) return item;
+                        break;
+                    case 'maxScore':
+                        if (numValue < 0) return item;
+                        // If maxScore is being reduced, check if current score exceeds it
+                        if (item.score !== '' && Number(item.score) > numValue) {
+                            return { ...item, maxScore: numValue, score: numValue };
+                        }
+                        break;
+                }
                 
                 return { ...item, [field]: numValue };
             }
@@ -87,14 +108,22 @@ const GradePredictor = () => {
     const calculateCurrentGrade = () => {
         let totalWeight = 0;
         let weightedScore = 0;
+        
         gradeItems.forEach((item) => {
-            if (item.weight && item.score !== '') {
-                const percentage = (Number(item.score) / Number(item.maxScore)) * 100;
-                weightedScore += percentage * (Number(item.weight) / 100);
-                totalWeight += Number(item.weight);
+            // Only include items that have both weight and score
+            if (item.weight !== '' && item.score !== '' && item.maxScore !== '') {
+                const weight = Number(item.weight);
+                const score = Number(item.score);
+                const maxScore = Number(item.maxScore);
+                
+                const percentage = (score / maxScore) * 100;
+                weightedScore += percentage * (weight / 100);
+                totalWeight += weight;
             }
         });
-        return totalWeight === 0 ? 0 : (weightedScore * (100 / totalWeight)).toFixed(2);
+        
+        if (totalWeight === 0) return '0.00';
+        return (weightedScore * (100 / totalWeight)).toFixed(2);
     };
 
     const calculateNeededScore = () => {
