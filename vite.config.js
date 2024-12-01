@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
@@ -7,11 +8,12 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         assetsDir: 'assets',
+        sourcemap: true,
         rollupOptions: {
             output: {
-                entryFileNames: 'assets/[name].[hash].js',
-                chunkFileNames: 'assets/[name].[hash].js',
-                assetFileNames: 'assets/[name].[hash].[ext]',
+                entryFileNames: `assets/[name].${Date.now()}.js`,
+                chunkFileNames: `assets/[name].${Date.now()}.js`,
+                assetFileNames: `assets/[name].${Date.now()}.[ext]`,
                 manualChunks: {
                     vendor: ['react', 'react-dom', 'react-router-dom'],
                     firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore']
@@ -20,7 +22,9 @@ export default defineConfig({
         }
     },
     server: {
-        port: 3000,
-        strictPort: true
+        force: true,
+        hmr: {
+            overlay: true
+        }
     }
 });

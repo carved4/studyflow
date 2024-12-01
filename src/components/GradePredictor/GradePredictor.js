@@ -1,3 +1,8 @@
+/**
+ * Grade Predictor Component
+ * Version: 2.0.0
+ * Last Updated: 2023-03-08T14:30:00.000Z
+ */
 import React, { useState, useMemo, useCallback } from 'react';
 import {
     Box,
