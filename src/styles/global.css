@@ -15,13 +15,8 @@
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 2rem;
-}
-
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--text-primary);
+  padding: 0.75rem 2rem;
+  height: 64px;
 }
 
 .navbar-menu {
@@ -30,6 +25,7 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: center;
+  height: 100%;
 }
 
 .navbar-item {
@@ -41,10 +37,17 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.3s;
+  height: 100%;
 }
 
 .navbar-item:hover {
   background-color: rgba(var(--accent-color), 0.1);
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-primary);
 }
 
 .theme-toggle {

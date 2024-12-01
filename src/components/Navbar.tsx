@@ -51,7 +51,18 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
   return (
     <nav className={`navbar ${isDarkMode ? 'dark-mode' : ''} ${className}`}>
       <div className="navbar-content">
-        <div className="navbar-brand">StudyFlow</div>
+        <Typography 
+          variant="h6" 
+          component="div" 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            fontWeight: 'bold',
+            fontSize: '1.5rem'
+          }}
+        >
+          StudyFlow
+        </Typography>
         <div className="navbar-menu">
           {navItems.map((item) => (
             <Link 
