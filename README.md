@@ -1,6 +1,9 @@
 # StudyFlow
 
-A comprehensive student productivity application built with React, TypeScript, and Firebase.
+A comprehensive student productivity application built with React, TypeScript, and Firebase. The goal for this project is to produce 
+an ad-free, user-friendly study hub for students in college. I also want to help demystify the web app building process for other programming students 
+and include an easy to follow deployment guide specifically on vercel. I hope the source code and instructions are beneficial to those who want
+to learn! I encourage users to edit the source code to create an even better application!
 
 ## Features
 
