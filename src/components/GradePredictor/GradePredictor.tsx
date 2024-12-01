@@ -244,11 +244,18 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                       <TableCell align="right">
                         <Tooltip title="Weight must be between 0 and 100">
                           <TextField
-                            type="number"
                             size="small"
                             value={item.weight}
-                            onChange={(e) => handleUpdateItem(item.id, 'weight', e.target.value)}
-                            inputProps={{ min: 0, max: 100, step: 0.1 }}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d.]/g, '');
+                              handleUpdateItem(item.id, 'weight', value);
+                            }}
+                            inputProps={{
+                              inputMode: 'decimal',
+                              pattern: '[0-9]*\\.?[0-9]*',
+                              style: { textAlign: 'right' }
+                            }}
+                            placeholder="0-100"
                             aria-label="Weight"
                           />
                         </Tooltip>
@@ -256,11 +263,18 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                       <TableCell align="right">
                         <Tooltip title={`Score must be between 0 and ${item.maxScore}`}>
                           <TextField
-                            type="number"
                             size="small"
                             value={item.score}
-                            onChange={(e) => handleUpdateItem(item.id, 'score', e.target.value)}
-                            inputProps={{ min: 0, max: item.maxScore, step: 0.1 }}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d.]/g, '');
+                              handleUpdateItem(item.id, 'score', value);
+                            }}
+                            inputProps={{
+                              inputMode: 'decimal',
+                              pattern: '[0-9]*\\.?[0-9]*',
+                              style: { textAlign: 'right' }
+                            }}
+                            placeholder={`0-${item.maxScore}`}
                             aria-label="Score"
                           />
                         </Tooltip>
@@ -268,11 +282,18 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                       <TableCell align="right">
                         <Tooltip title="Max score must be greater than 0">
                           <TextField
-                            type="number"
                             size="small"
                             value={item.maxScore}
-                            onChange={(e) => handleUpdateItem(item.id, 'maxScore', e.target.value)}
-                            inputProps={{ min: 1, step: 0.1 }}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d.]/g, '');
+                              handleUpdateItem(item.id, 'maxScore', value);
+                            }}
+                            inputProps={{
+                              inputMode: 'decimal',
+                              pattern: '[0-9]*\\.?[0-9]*',
+                              style: { textAlign: 'right' }
+                            }}
+                            placeholder="Max points"
                             aria-label="Max score"
                           />
                         </Tooltip>
@@ -342,21 +363,22 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
                   Target Grade
                 </Typography>
                 <TextField
-                  type="number"
                   fullWidth
                   value={targetGrade}
                   onChange={(e) => {
-                    const value = Number(e.target.value);
-                    if (value >= MIN_GRADE && value <= MAX_GRADE) {
-                      setTargetGrade(value);
+                    const value = e.target.value.replace(/[^\d.]/g, '');
+                    const numValue = Number(value);
+                    if (!value || (numValue >= MIN_GRADE && numValue <= MAX_GRADE)) {
+                      setTargetGrade(numValue);
                       setError('');
                     }
                   }}
-                  inputProps={{ 
-                    min: MIN_GRADE,
-                    max: MAX_GRADE,
-                    step: 0.1
+                  inputProps={{
+                    inputMode: 'decimal',
+                    pattern: '[0-9]*\\.?[0-9]*',
+                    style: { textAlign: 'right' }
                   }}
+                  placeholder="Target grade (0-100)"
                   aria-label="Target grade"
                 />
               </CardContent>
