@@ -19,7 +19,7 @@ import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 interface Course {
   id: number;
   name: string;
-  credits: number;
+  credits: number | string;
   grade: string;
 }
 
@@ -40,15 +40,15 @@ const gradePoints: { [key: string]: number } = {
 
 const GPACalculator = () => {
   const [courses, setCourses] = useState<Course[]>([
-    { id: 1, name: '', credits: 0, grade: 'A' },
+    { id: 1, name: '', credits: '', grade: '' },
   ]);
 
   const addCourse = () => {
     const newCourse: Course = {
       id: courses.length + 1,
       name: '',
-      credits: 0,
-      grade: 'A',
+      credits: '',
+      grade: '',
     };
     setCourses([...courses, newCourse]);
   };
@@ -60,11 +60,16 @@ const GPACalculator = () => {
   };
 
   const updateCourse = (id: number, field: keyof Course, value: string | number) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === id ? { ...course, [field]: value } : course
-      )
-    );
+    setCourses(courses.map(course => {
+      if (course.id === id) {
+        if (field === 'credits') {
+          // Convert empty string to 0 for calculations, but keep as string in state
+          return { ...course, [field]: value };
+        }
+        return { ...course, [field]: value };
+      }
+      return course;
+    }));
   };
 
   const calculateGPA = () => {
@@ -72,12 +77,17 @@ const GPACalculator = () => {
     let totalCredits = 0;
 
     courses.forEach((course) => {
-      const points = gradePoints[course.grade] * course.credits;
-      totalPoints += points;
-      totalCredits += course.credits;
+      if (course.grade && course.credits) {
+        const credits = Number(course.credits) || 0;
+        const points = gradePoints[course.grade] * credits;
+        if (!isNaN(points)) {
+          totalPoints += points;
+          totalCredits += credits;
+        }
+      }
     });
 
-    return totalCredits === 0 ? 0 : (totalPoints / totalCredits).toFixed(2);
+    return totalCredits === 0 ? '0.00' : (totalPoints / totalCredits).toFixed(2);
   };
 
   return (
@@ -91,34 +101,38 @@ const GPACalculator = () => {
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Course Name"
+                size="small"
                 value={course.name}
                 onChange={(e) => updateCourse(course.id, 'name', e.target.value)}
+                variant="outlined"
+                placeholder="Enter course name"
+                autoFocus={courses.length > 1 && course.id === courses[courses.length - 1].id}
               />
             </Grid>
             <Grid item xs={12} sm={3}>
               <TextField
-                fullWidth
                 type="number"
-                label="Credits"
+                size="small"
                 value={course.credits}
-                onChange={(e) =>
-                  updateCourse(course.id, 'credits', Number(e.target.value))
-                }
+                onChange={(e) => updateCourse(course.id, 'credits', e.target.value)}
+                inputProps={{ min: 0, step: "any" }}
+                variant="outlined"
+                placeholder="Credits"
               />
             </Grid>
             <Grid item xs={12} sm={3}>
-              <FormControl fullWidth>
-                <InputLabel>Grade</InputLabel>
+              <FormControl fullWidth size="small">
+                <InputLabel id={`grade-label-${course.id}`}>Grade</InputLabel>
                 <Select
+                  labelId={`grade-label-${course.id}`}
                   value={course.grade}
-                  label="Grade"
                   onChange={(e) => updateCourse(course.id, 'grade', e.target.value)}
+                  label="Grade"
+                  displayEmpty
                 >
+                  <MenuItem value="" disabled><em>Select grade</em></MenuItem>
                   {Object.keys(gradePoints).map((grade) => (
-                    <MenuItem key={grade} value={grade}>
-                      {grade}
-                    </MenuItem>
+                    <MenuItem key={grade} value={grade}>{grade}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -143,13 +157,12 @@ const GPACalculator = () => {
           Add Course
         </Button>
       </Paper>
-
-      <Card elevation={3}>
+      <Card>
         <CardContent>
-          <Typography variant="h5" gutterBottom>
-            Calculated GPA
+          <Typography color="text.secondary" gutterBottom>
+            Current GPA
           </Typography>
-          <Typography variant="h3" color="primary">
+          <Typography variant="h4">
             {calculateGPA()}
           </Typography>
         </CardContent>
