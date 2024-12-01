@@ -1,0 +1,52 @@
+name: Vercel Deployment
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  Deploy-to-Vercel:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.vercel-deployment.outputs.preview-url }}
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Create GitHub Deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          environment: production
+          initial-status: in_progress
+          
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        id: vercel-deployment
+        with:
+          vercel-token: "${{ secrets.VERCEL_TOKEN }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          vercel-org-id: "${{ secrets.VERCEL_ORG_ID }}"
+          vercel-project-id: "${{ secrets.VERCEL_PROJECT_ID }}"
+          working-directory: ./
+          alias-domains: |
+            studyflow.vercel.app
+            
+      - name: Update Deployment Status (Success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          environment-url: "${{ steps.vercel-deployment.outputs.preview-url }}"
+          state: "success"
+          deployment-id: "${{ steps.deployment.outputs.deployment_id }}"
+
+      - name: Update Deployment Status (Failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          state: "failure"
+          deployment-id: "${{ steps.deployment.outputs.deployment_id }}"
