@@ -128,9 +128,8 @@ const GPACalculator = () => {
                   value={course.grade}
                   onChange={(e) => updateCourse(course.id, 'grade', e.target.value)}
                   label="Grade"
-                  displayEmpty
                 >
-                  <MenuItem value="" disabled><em>Select grade</em></MenuItem>
+                  <MenuItem value="" sx={{ color: 'text.secondary' }}>Select grade</MenuItem>
                   {Object.keys(gradePoints).map((grade) => (
                     <MenuItem key={grade} value={grade}>{grade}</MenuItem>
                   ))}
