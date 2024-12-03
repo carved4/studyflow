@@ -25,6 +25,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
+  const toggleTheme = useCallback(() => {
+    setIsDarkMode(prevMode => {
+      const newMode = !prevMode;
+      localStorage.setItem('theme', newMode ? 'dark' : 'light');
+      return newMode;
+    });
+  }, []);
+
+  const setThemeMode = useCallback((mode: ThemeMode) => {
+    setIsDarkMode(mode === 'dark');
+    localStorage.setItem('theme', mode);
+  }, []);
+
   // Memoized theme creation for performance
   const theme = useMemo(() => createTheme({
     palette: {
@@ -68,16 +81,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     window.dispatchEvent(event);
   }, [isDarkMode]);
 
-  // Prevent unnecessary re-renders
-  const toggleTheme = useCallback(() => {
-    setIsDarkMode(prev => !prev);
-  }, []);
-
-  // Allow explicit theme setting
-  const setThemeMode = useCallback((mode: ThemeMode) => {
-    setIsDarkMode(mode === 'dark');
-  }, []);
-
   // System theme change listener
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -107,4 +110,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
