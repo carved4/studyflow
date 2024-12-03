@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -27,53 +27,28 @@ const App = () => {
         document.documentElement.style.setProperty('--vh', `${vh}px`);
       };
       
-      window.addEventListener('resize', fixViewportHeight);
-      window.addEventListener('orientationchange', fixViewportHeight);
       fixViewportHeight();
-
-      // Handle iOS keyboard
-      const inputs = document.querySelectorAll('input, textarea');
-      inputs.forEach(input => {
-        input.addEventListener('blur', () => {
-          window.scrollTo(0, 0);
-        });
-      });
-
+      window.addEventListener('resize', fixViewportHeight);
+      
       return () => {
         window.removeEventListener('resize', fixViewportHeight);
-        window.removeEventListener('orientationchange', fixViewportHeight);
-        inputs.forEach(input => {
-          input.removeEventListener('blur', () => {
-            window.scrollTo(0, 0);
-          });
-        });
       };
     }
   }, []);
 
   return (
-    <MUIThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
+    <Router>
+      <MUIThemeProvider theme={theme}>
         <ThemeProvider>
-          <Router>
-            <div className="app app-container">
-              <Navbar 
-                onLoginClick={() => setIsAuthModalOpen(true)} 
-                className="sticky-header no-select"
-              />
-              <AuthModal 
-                open={isAuthModalOpen} 
-                onClose={() => setIsAuthModalOpen(false)} 
-              />
-              <main className="container scroll-container">
-                <AppRoutes />
-              </main>
-            </div>
-          </Router>
+          <CssBaseline />
+          <AuthProvider>
+            <Navbar />
+            <AppRoutes />
+            {isAuthModalOpen && <AuthModal />}
+          </AuthProvider>
         </ThemeProvider>
-      </AuthProvider>
-    </MUIThemeProvider>
+      </MUIThemeProvider>
+    </Router>
   );
 };
 
