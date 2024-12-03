@@ -1,6 +1,15 @@
-import { createContext, useState, useContext, useEffect } from 'react';
-import { User } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { 
+  createContext, 
+  useState, 
+  useContext, 
+  useEffect, 
+  ReactNode 
+} from 'react';
+import { 
+  User, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { auth, getUserDetails } from '../config/firebase';
 
 // Define the shape of the AuthContext
 interface AuthContextType {
@@ -18,8 +27,13 @@ const AuthContext = createContext<AuthContextType>({
   userDetails: null
 });
 
+// Define props for AuthProvider
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
 // AuthProvider component
-export const AuthProvider = ({ children }: any) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Box, Typography } from '@mui/material';
 
 interface ProtectedRouteProps {
-  component: React.ComponentType<React.PropsWithChildren<{}>>;
+  component: React.ComponentType<any>;
   children?: React.ReactNode;
 }
 
@@ -31,5 +31,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Compo
     return <Navigate to="/login" />;
   }
 
-  return <Component>{children}</Component>;
+  return children ? <Component>{children}</Component> : <Component />;
 };
