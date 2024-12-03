@@ -2,8 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { 
   BrowserRouter as Router, 
   Routes, 
-  Route,
-  RouteProps
+  Route
 } from 'react-router-dom';
 
 // Lazy-loaded components
