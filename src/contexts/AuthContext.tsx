@@ -1,15 +1,6 @@
-import React, { 
-  createContext, 
-  useState, 
-  useContext, 
-  useEffect,
-  PropsWithChildren
-} from 'react';
-import { 
-  User, 
-  onAuthStateChanged 
-} from 'firebase/auth';
-import { auth, getUserDetails } from '../config/firebase';
+import { createContext, useState, useContext, useEffect } from 'react';
+import { User } from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 // Define the shape of the AuthContext
 interface AuthContextType {
@@ -28,7 +19,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 // AuthProvider component
-export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
+export const AuthProvider = ({ children }: any) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);

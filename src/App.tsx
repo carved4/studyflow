@@ -8,7 +8,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import AppRoutes from './routes'; 
 import AuthModal from './components/Auth/AuthModal';
-import { Button, Box } from '@mui/material';
 import './styles/ios.css';
 
 interface AppProps {}

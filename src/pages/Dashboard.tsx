@@ -18,7 +18,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const navigate = useNavigate();
 
   const features = [

@@ -44,7 +44,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { currentUser } = useAuth();
+  const { currentUser } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   // Use iOS keyboard hook
   useIOSKeyboard();

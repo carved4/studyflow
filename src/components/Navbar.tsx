@@ -23,7 +23,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
   const { isDarkMode, toggleTheme } = useTheme();
-  const { currentUser, isAuthenticated } = useAuth();
+  const { currentUser, isAuthenticated } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const location = useLocation();
 
   const navItems = [
