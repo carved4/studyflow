@@ -18,7 +18,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
-  const { currentUser } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const { currentUser } = useAuth(); 
   const navigate = useNavigate();
 
   const features = [
@@ -52,12 +52,20 @@ const Dashboard: React.FC = () => {
     },
     {
       title: 'Study Logger',
-      description: 'Track your study time and progress',
+      description: 'Log and analyze your study sessions',
       icon: <BookIcon sx={{ fontSize: 40 }} />,
       path: '/study-logger',
-      color: '#d32f2f',
+      color: '#673ab7',
     },
   ];
+
+  // Extract first name or use email if no display name
+  const getUserName = () => {
+    if (currentUser?.displayName) {
+      return currentUser.displayName.split(' ')[0];
+    }
+    return currentUser?.email?.split('@')[0] || 'Student';
+  };
 
   return (
     <Box sx={{ 
@@ -76,7 +84,7 @@ const Dashboard: React.FC = () => {
           fontWeight: 600 
         }}
       >
-        Welcome to StudyFlow
+        Welcome, {getUserName()} to StudyFlow
       </Typography>
 
       <Grid container spacing={3}>

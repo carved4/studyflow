@@ -44,10 +44,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { currentUser } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const { currentUser } = useAuth();
 
   // Use iOS keyboard hook
   useIOSKeyboard();
+
+  // If user is already logged in, don't show the modal
+  if (currentUser) {
+    onClose();
+    return null;
+  }
 
   // Style adjustments for iOS
   const modalStyle = {

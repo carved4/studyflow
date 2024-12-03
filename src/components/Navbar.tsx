@@ -15,6 +15,7 @@ import {
   Login as LoginIcon,
   Logout as LogoutIcon
 } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
 
 interface NavbarProps {
   onLoginClick: () => void;
@@ -43,6 +44,19 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
     }
   };
 
+  // Conditionally render login/logout button based on authentication
+  const AuthButton = () => (
+    isAuthenticated ? (
+      <IconButton onClick={handleLogout}>
+        <LogoutIcon />
+      </IconButton>
+    ) : (
+      <IconButton onClick={onLoginClick}>
+        <LoginIcon />
+      </IconButton>
+    )
+  );
+
   return (
     <nav className={`navbar ${isDarkMode ? 'dark-mode' : ''} ${className}`}>
       <div className="navbar-content">
@@ -70,21 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </button>
 
-          {isAuthenticated ? (
-            <button 
-              className="btn btn-outline" 
-              onClick={handleLogout}
-            >
-              <LogoutIcon sx={{ marginRight: 0.5 }} /> Logout
-            </button>
-          ) : (
-            <button 
-              className="btn" 
-              onClick={onLoginClick}
-            >
-              <LoginIcon sx={{ marginRight: 0.5 }} /> Login
-            </button>
-          )}
+          <AuthButton />
         </div>
       </div>
     </nav>
