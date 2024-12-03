@@ -15,7 +15,7 @@ import {
   Login as LoginIcon,
   Logout as LogoutIcon
 } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 
 interface NavbarProps {
   onLoginClick: () => void;
@@ -24,7 +24,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
   const { isDarkMode, toggleTheme } = useTheme();
-  const { currentUser, isAuthenticated } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const { currentUser, isAuthenticated } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -44,12 +44,22 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
     }
   };
 
+  // Get user display name or email
+  const getUserDisplayName = () => {
+    if (currentUser?.displayName) {
+      return currentUser.displayName.split(' ')[0];
+    }
+    return currentUser?.email?.split('@')[0] || 'User';
+  };
+
   // Conditionally render login/logout button based on authentication
   const AuthButton = () => (
     isAuthenticated ? (
-      <IconButton onClick={handleLogout}>
-        <LogoutIcon />
-      </IconButton>
+      <Tooltip title={`Logout (${getUserDisplayName()})`}>
+        <IconButton onClick={handleLogout}>
+          <LogoutIcon />
+        </IconButton>
+      </Tooltip>
     ) : (
       <IconButton onClick={onLoginClick}>
         <LoginIcon />
