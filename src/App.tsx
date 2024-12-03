@@ -46,7 +46,9 @@ const App = () => {
               onLoginClick={() => setIsAuthModalOpen(true)} 
               className="sticky-header no-select"
             />
-            <AppRoutes />
+            <main className="main-content">
+              <AppRoutes />
+            </main>
             <AuthModal 
               open={isAuthModalOpen} 
               onClose={() => setIsAuthModalOpen(false)} 

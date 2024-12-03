@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,6 +11,9 @@ export default defineConfig({
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      'src': path.resolve(__dirname, './src'),
+    },
   },
   esbuild: {
     loader: 'jsx',
@@ -29,6 +33,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
+    chunkSizeWarningLimit: 1000, // Increase chunk size warning limit
     assetsDir: 'assets',
     rollupOptions: {
       input: {
@@ -38,16 +43,31 @@ export default defineConfig({
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          'vendor-mui': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled']
+        manualChunks(id) {
+          // More granular chunk splitting
+          if (id.includes('node_modules')) {
+            // Split large libraries into separate chunks
+            if (id.includes('firebase')) {
+              return 'vendor-firebase';
+            }
+            if (id.includes('@mui') || id.includes('@emotion')) {
+              return 'vendor-mui';
+            }
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('redux') || id.includes('react-redux')) {
+              return 'vendor-redux';
+            }
+            return 'vendor';
+          }
         }
       }
     }
   },
   server: {
     port: 3000,
-    strictPort: true
+    strictPort: true,
+    open: true
   }
 })

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* Navbar Styles */
 .navbar {
   position: fixed;
@@ -116,6 +118,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-left: 0;
+  font-weight: 600;
 }
 
 .btn:hover,
@@ -123,19 +126,17 @@
 .log-study-session-btn:hover {
   background-color: var(--accent-color);
   color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.btn svg,
-.add-assignment-btn svg,
-.log-study-session-btn svg {
-  margin-right: 0.25rem;
-  font-size: 1rem;
-}
-
-.dark-mode .btn,
-.dark-mode .add-assignment-btn,
-.dark-mode .log-study-session-btn {
+:root:not(.dark-mode) .log-study-session-btn {
   background-color: var(--accent-color);
+  color: white;
+}
+
+:root:not(.dark-mode) .log-study-session-btn:hover {
+  background-color: transparent;
+  color: var(--accent-color);
 }
 
 .theme-toggle:hover {
@@ -220,17 +221,30 @@
   }
 }
 
-/* Main Content Spacing */
+/* Main Content Layout */
 .main-content {
-  padding-top: 100px;
+  padding-top: 80px; /* navbar height (64px) + extra padding */
   min-height: calc(100vh - 64px);
-  background-color: var(--bg-primary);
-  transition: background-color 0.3s ease;
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding-left: 2rem;
   padding-right: 2rem;
-  padding-bottom: 2rem;
+  padding-bottom: 80px; /* Add padding for mobile bottom navbar */
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 100px; /* Increased padding for mobile bottom navbar */
+  }
+}
+
+/* Main Content Spacing */
+.main-content {
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
   animation: fadeIn 0.8s ease-out;
 }
 
@@ -406,8 +420,6 @@
 }
 
 /* Global Styles */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 :root {
   /* Enhanced Color Palette */
   --primary-color: #3B82F6;       /* Vibrant Blue */
@@ -686,7 +698,7 @@ body.dark-mode {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-color);
+  background-color: var(--accent-color);
   border-radius: 5px;
 }
 
@@ -695,7 +707,7 @@ body.dark-mode {
 }
 
 .dark-mode ::-webkit-scrollbar-thumb {
-  background: var(--accent-color);
+  background-color: var(--accent-color);
 }
 
 /* Animation Keyframes */

@@ -1,14 +1,13 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from 'src/contexts/AuthContext';
 import { Box, Typography } from '@mui/material';
 
 interface ProtectedRouteProps {
-  component: React.ComponentType<any>;
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component, children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -28,8 +27,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Compo
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/auth" replace />;
   }
 
-  return children ? <Component>{children}</Component> : <Component />;
+  return <>{children}</>;
 };
+
+export default ProtectedRoute;
