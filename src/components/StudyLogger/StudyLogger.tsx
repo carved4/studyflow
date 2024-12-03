@@ -1,43 +1,43 @@
-import { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Grid,
+import React, { useState, useMemo } from 'react';
+import { 
+  Box, 
+  Grid, 
+  Typography, 
+  Button, 
+  Paper, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  IconButton, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  TextField, 
+  MenuItem,
+  Fade,
+  Slide,
+  Alert,
+  Divider,
+  Chip,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Stack,
-  Chip,
-  Divider,
-  LinearProgress,
-  Tooltip,
-  Alert,
+  Stack
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  TrendingUp as TrendingUpIcon,
-  AccessTime as AccessTimeIcon,
-  Book as BookIcon,
-  Grade as GradeIcon,
-  CalendarToday as CalendarIcon,
-} from '@mui/icons-material';
-import { format } from 'date-fns';
+import { TransitionProps } from '@mui/material/transitions';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+
+const Transition = React.forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement<any, any>;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 interface StudySession {
   id: number;
@@ -48,329 +48,356 @@ interface StudySession {
   productivity: 'High' | 'Medium' | 'Low';
 }
 
-const StudyLogger = () => {
+// Utility function to format duration
+const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+  return `${minutes}m`;
+};
+
+// Utility function to get productivity color
+const getProductivityColor = (productivity: string): 'success' | 'warning' | 'error' | 'default' => {
+  switch (productivity) {
+    case 'High':
+      return 'success';
+    case 'Medium':
+      return 'warning';
+    case 'Low':
+      return 'error';
+    default:
+      return 'default';
+  }
+};
+
+// Utility function to get most studied subject
+const getMostStudiedSubject = (sessions: StudySession[]): string => {
+  if (sessions.length === 0) return 'N/A';
+  
+  const subjectCounts = sessions.reduce((acc, session) => {
+    acc[session.subject] = (acc[session.subject] || 0) + session.duration;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(subjectCounts).reduce((a, b) => 
+    b[1] > a[1] ? b : a
+  )[0];
+};
+
+// Utility function to get average productivity
+const getAverageProductivity = (sessions: StudySession[]): string => {
+  if (sessions.length === 0) return 'N/A';
+  
+  const productivityMap: Record<StudySession['productivity'], number> = { 
+    High: 3, 
+    Medium: 2, 
+    Low: 1 
+  };
+  
+  const total = sessions.reduce(
+    (sum, session) => sum + productivityMap[session.productivity], 
+    0
+  );
+  
+  const average = total / sessions.length;
+  
+  if (average >= 2.5) return 'High';
+  if (average >= 1.5) return 'Medium';
+  return 'Low';
+};
+
+const StudyLogger: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [open, setOpen] = useState(false);
-  const [editingSession, setEditingSession] = useState<StudySession | null>(null);
+  const [editSession, setEditSession] = useState<StudySession | null>(null);
   const [newSession, setNewSession] = useState<Omit<StudySession, 'id'>>({
     subject: '',
-    duration: 30,
-    date: format(new Date(), 'yyyy-MM-dd'),
+    duration: 0,
+    date: new Date().toISOString().split('T')[0],
     notes: '',
-    productivity: 'Medium',
+    productivity: 'Medium'
   });
 
   const handleClickOpen = () => {
+    setEditSession(null);
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setEditingSession(null);
+    setEditSession(null);
     setNewSession({
       subject: '',
-      duration: 30,
-      date: format(new Date(), 'yyyy-MM-dd'),
+      duration: 0,
+      date: new Date().toISOString().split('T')[0],
       notes: '',
-      productivity: 'Medium',
+      productivity: 'Medium'
     });
   };
 
-  const handleSubmit = () => {
-    if (editingSession) {
-      setSessions(
-        sessions.map((session) =>
-          session.id === editingSession.id
-            ? { ...session, ...newSession }
-            : session
-        )
+  const handleSave = () => {
+    if (editSession) {
+      // Update existing session
+      setSessions(prev => 
+        prev.map(s => s.id === editSession.id ? { ...s, ...newSession } : s)
       );
     } else {
-      const newId = sessions.length > 0 ? Math.max(...sessions.map((s) => s.id)) + 1 : 1;
-      setSessions([...sessions, { ...newSession, id: newId }]);
+      // Add new session
+      setSessions(prev => [
+        ...prev, 
+        { 
+          ...newSession, 
+          id: prev.length > 0 ? Math.max(...prev.map(s => s.id)) + 1 : 1 
+        }
+      ]);
     }
     handleClose();
   };
 
   const handleEdit = (session: StudySession) => {
-    setEditingSession(session);
+    setEditSession(session);
     setNewSession({
       subject: session.subject,
       duration: session.duration,
       date: session.date,
       notes: session.notes,
-      productivity: session.productivity,
+      productivity: session.productivity
     });
     setOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    setSessions(sessions.filter((session) => session.id !== id));
+    setSessions(prev => prev.filter(s => s.id !== id));
   };
 
-  const calculateTotalTime = () => {
+  const sortedSessions = useMemo(() => {
+    return [...sessions].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [sessions]);
+
+  const getTotalStudyTime = () => {
     return sessions.reduce((total, session) => total + session.duration, 0);
   };
 
-  const calculateAverageProductivity = () => {
-    if (sessions.length === 0) return 'N/A';
-    const productivityMap = { High: 3, Medium: 2, Low: 1 };
-    const total = sessions.reduce(
-      (sum, session) => sum + productivityMap[session.productivity],
-      0
-    );
-    const average = total / sessions.length;
-    if (average >= 2.5) return 'High';
-    if (average >= 1.5) return 'Medium';
-    return 'Low';
-  };
-
-  const getMostStudiedSubject = () => {
-    if (sessions.length === 0) return 'N/A';
-    const subjectMap = sessions.reduce((map, session) => {
-      map[session.subject] = (map[session.subject] || 0) + session.duration;
-      return map;
-    }, {} as { [key: string]: number });
-    return Object.entries(subjectMap).reduce((a, b) =>
-      a[1] > b[1] ? a : b
-    )[0];
-  };
-
-  const getProductivityColor = (productivity: string) => {
-    switch (productivity) {
-      case 'High':
-        return 'success';
-      case 'Medium':
-        return 'warning';
-      case 'Low':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    if (hours === 0) return `${minutes} min`;
-    return `${hours}h ${remainingMinutes}m`;
-  };
-
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-        <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Grid item>
-            <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-              Study Logger
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              Track and analyze your study sessions
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<AddIcon />}
-              onClick={handleClickOpen}
+    <Box className="app-container" sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+      <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Grid item>
+          <Typography variant="h4" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            Study Logger
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Track and analyze your study sessions
+          </Typography>
+        </Grid>
+        <Grid item>
+          <Button
+            className="log-study-session-btn"
+            startIcon={<AddIcon />}
+            onClick={handleClickOpen}
+          >
+            Log Study Session
+          </Button>
+        </Grid>
+      </Grid>
+
+      {sessions.length > 0 ? (
+        <Fade in={true}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              borderRadius: 2, 
+              overflow: 'hidden',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)' 
+            }}
+          >
+            <List>
+              {sortedSessions.map((session, index) => (
+                <React.Fragment key={session.id}>
+                  {index > 0 && <Divider />}
+                  <ListItem
+                    secondaryAction={
+                      <Box>
+                        <IconButton
+                          edge="end"
+                          aria-label="edit"
+                          onClick={() => handleEdit(session)}
+                          sx={{ mr: 1 }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => handleDelete(session.id)}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    }
+                    sx={{
+                      py: 2,
+                      transition: 'background-color 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      }
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Typography 
+                            variant="body1" 
+                            sx={{ fontWeight: 500 }}
+                          >
+                            {session.subject}
+                          </Typography>
+                          <Chip
+                            label={session.productivity}
+                            color={getProductivityColor(session.productivity)}
+                            size="small"
+                            sx={{ ml: 2 }}
+                          />
+                        </Box>
+                      }
+                      secondary={
+                        <Grid container spacing={2} alignItems="center">
+                          <Grid item>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant="body2">
+                                {formatDuration(session.duration)}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                          <Grid item>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant="body2">
+                                {new Date(session.date).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                          {session.notes && (
+                            <Grid item xs={12}>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  mt: 1,
+                                  color: 'text.secondary',
+                                  fontStyle: 'italic'
+                                }}
+                              >
+                                {session.notes}
+                              </Typography>
+                            </Grid>
+                          )}
+                        </Grid>
+                      }
+                    />
+                  </ListItem>
+                </React.Fragment>
+              ))}
+            </List>
+          </Paper>
+        </Fade>
+      ) : (
+        <Fade in={true}>
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              p: 3, 
+              textAlign: 'center', 
+              borderRadius: 2,
+              backgroundColor: 'background.paper'
+            }}
+          >
+            <Alert 
+              severity="info" 
               sx={{ 
                 borderRadius: 2,
-                px: 3,
-                py: 1,
-                backgroundColor: 'primary.main',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                }
+                backgroundColor: 'background.paper'
               }}
             >
-              Log Study Session
-            </Button>
-          </Grid>
+              No study sessions logged yet. Click "Log Study Session" to get started!
+            </Alert>
+          </Paper>
+        </Fade>
+      )}
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
         </Grid>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            {sessions.length === 0 ? (
-              <Alert 
-                severity="info" 
-                sx={{ 
-                  borderRadius: 2,
-                  backgroundColor: 'background.paper'
-                }}
-              >
-                No study sessions logged yet. Click "Log Study Session" to get started!
-              </Alert>
-            ) : (
-              <Paper 
-                elevation={2} 
-                sx={{ 
-                  borderRadius: 2,
-                  overflow: 'hidden'
-                }}
-              >
-                <List>
-                  {sessions.map((session, index) => (
-                    <>
-                      {index > 0 && <Divider />}
-                      <ListItem
-                        key={session.id}
-                        sx={{
-                          py: 2,
-                          '&:hover': {
-                            backgroundColor: 'action.hover',
-                          },
-                        }}
-                        secondaryAction={
-                          <Box>
-                            <Tooltip title="Edit session">
-                              <IconButton
-                                edge="end"
-                                aria-label="edit"
-                                onClick={() => handleEdit(session)}
-                                sx={{ mr: 1 }}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Delete session">
-                              <IconButton
-                                edge="end"
-                                aria-label="delete"
-                                onClick={() => handleDelete(session.id)}
-                                color="error"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        }
-                      >
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                              <Typography variant="h6" component="span">
-                                {session.subject}
-                              </Typography>
-                              <Chip
-                                label={session.productivity}
-                                color={getProductivityColor(session.productivity)}
-                                size="small"
-                                sx={{ ml: 2 }}
-                              />
-                            </Box>
-                          }
-                          secondary={
-                            <Grid container spacing={2} alignItems="center">
-                              <Grid item>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <CalendarIcon sx={{ fontSize: 'small', mr: 0.5 }} />
-                                  <Typography variant="body2">
-                                    {format(new Date(session.date), 'MMM dd, yyyy')}
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                              <Grid item>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <AccessTimeIcon sx={{ fontSize: 'small', mr: 0.5 }} />
-                                  <Typography variant="body2">
-                                    {formatDuration(session.duration)}
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                              {session.notes && (
-                                <Grid item xs={12}>
-                                  <Typography 
-                                    variant="body2" 
-                                    sx={{ 
-                                      mt: 1,
-                                      color: 'text.secondary',
-                                      fontStyle: 'italic'
-                                    }}
-                                  >
-                                    {session.notes}
-                                  </Typography>
-                                </Grid>
-                              )}
-                            </Grid>
-                          }
-                        />
-                      </ListItem>
-                    </>
-                  ))}
-                </List>
-              </Paper>
-            )}
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Stack spacing={2}>
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <AccessTimeIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="h6" color="text.primary">
-                      Total Study Time
-                    </Typography>
-                  </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {formatDuration(calculateTotalTime())}
+        <Grid item xs={12} md={4}>
+          <Stack spacing={2}>
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" color="text.primary">
+                    Total Study Time
                   </Typography>
-                </CardContent>
-              </Card>
+                </Box>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                  {formatDuration(getTotalStudyTime())}
+                </Typography>
+              </CardContent>
+            </Card>
 
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <TrendingUpIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="h6" color="text.primary">
-                      Average Productivity
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                      {calculateAverageProductivity()}
-                    </Typography>
-                    <Chip
-                      label={calculateAverageProductivity()}
-                      color={getProductivityColor(calculateAverageProductivity())}
-                      sx={{ ml: 2 }}
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
-
-              <Card sx={{ borderRadius: 2 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <BookIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="h6" color="text.primary">
-                      Most Studied Subject
-                    </Typography>
-                  </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {getMostStudiedSubject()}
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" color="text.primary">
+                    Average Productivity
                   </Typography>
-                </CardContent>
-              </Card>
-            </Stack>
-          </Grid>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                    {getAverageProductivity(sessions)}
+                  </Typography>
+                  <Chip
+                    label={getAverageProductivity(sessions)}
+                    color={getProductivityColor(getAverageProductivity(sessions))}
+                    sx={{ ml: 2 }}
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" color="text.primary">
+                    Most Studied Subject
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                  {getMostStudiedSubject(sessions)}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Stack>
         </Grid>
-      </Paper>
+      </Grid>
 
-      <Dialog 
-        open={open} 
-        onClose={handleClose} 
-        maxWidth="sm" 
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: 2 }
+      <Dialog
+        open={open}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleClose}
+        aria-describedby="study-session-dialog-description"
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 2,
+            minWidth: 400,
+          }
         }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
-            {editingSession ? 'Edit Study Session' : 'New Study Session'}
-          </Typography>
+        <DialogTitle>
+          {editSession ? 'Edit Study Session' : 'Log New Study Session'}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -378,34 +405,31 @@ const StudyLogger = () => {
             margin="dense"
             label="Subject"
             fullWidth
+            variant="outlined"
             value={newSession.subject}
-            onChange={(e) =>
-              setNewSession({ ...newSession, subject: e.target.value })
-            }
-            sx={{ mt: 2 }}
+            onChange={(e) => setNewSession({ ...newSession, subject: e.target.value })}
+            required
           />
           <TextField
             margin="dense"
             label="Duration (minutes)"
             type="number"
             fullWidth
+            variant="outlined"
             value={newSession.duration}
-            onChange={(e) =>
-              setNewSession({ ...newSession, duration: Number(e.target.value) })
-            }
+            onChange={(e) => setNewSession({ ...newSession, duration: Number(e.target.value) })}
+            required
           />
           <TextField
             margin="dense"
             label="Date"
             type="date"
             fullWidth
+            variant="outlined"
+            InputLabelProps={{ shrink: true }}
             value={newSession.date}
-            onChange={(e) =>
-              setNewSession({ ...newSession, date: e.target.value })
-            }
-            InputLabelProps={{
-              shrink: true,
-            }}
+            onChange={(e) => setNewSession({ ...newSession, date: e.target.value })}
+            required
           />
           <TextField
             margin="dense"
@@ -413,43 +437,33 @@ const StudyLogger = () => {
             fullWidth
             multiline
             rows={3}
-            value={newSession.notes}
-            onChange={(e) =>
-              setNewSession({ ...newSession, notes: e.target.value })
-            }
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Productivity</InputLabel>
-            <Select
-              value={newSession.productivity}
-              label="Productivity"
-              onChange={(e) =>
-                setNewSession({
-                  ...newSession,
-                  productivity: e.target.value as 'High' | 'Medium' | 'Low',
-                })
-              }
-            >
-              <MenuItem value="High">High</MenuItem>
-              <MenuItem value="Medium">Medium</MenuItem>
-              <MenuItem value="Low">Low</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button 
-            onClick={handleClose}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
+            value={newSession.notes}
+            onChange={(e) => setNewSession({ ...newSession, notes: e.target.value })}
+          />
+          <TextField
+            select
+            margin="dense"
+            label="Productivity"
+            fullWidth
+            variant="outlined"
+            value={newSession.productivity}
+            onChange={(e) => setNewSession({ ...newSession, productivity: e.target.value as 'High' | 'Medium' | 'Low' })}
+            required
           >
+            {['High', 'Medium', 'Low'].map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="secondary">
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            {editingSession ? 'Save Changes' : 'Add Session'}
+          <Button onClick={handleSave}>
+            {editSession ? 'Update' : 'Log'}
           </Button>
         </DialogActions>
       </Dialog>

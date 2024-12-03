@@ -98,106 +98,108 @@ const StudyTimer = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Study Timer
-      </Typography>
+    <div className="timer-app app-container">
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Study Timer
+        </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Paper
-            elevation={3}
-            sx={{
-              p: 4,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
-              <CircularProgress
-                variant="determinate"
-                value={calculateProgress()}
-                size={200}
-                thickness={2}
-                sx={{ color: isWorkTime ? 'primary.main' : 'secondary.main' }}
-              />
-              <Box
-                sx={{
-                  top: 0,
-                  left: 0,
-                  bottom: 0,
-                  right: 0,
-                  position: 'absolute',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography variant="h3" component="div">
-                  {formatTime(timeLeft)}
-                </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
+                <CircularProgress
+                  variant="determinate"
+                  value={calculateProgress()}
+                  size={200}
+                  thickness={2}
+                  sx={{ color: isWorkTime ? 'primary.main' : 'secondary.main' }}
+                />
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography variant="h3" component="div">
+                    {formatTime(timeLeft)}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
 
-            <Typography variant="h6" gutterBottom>
-              {isWorkTime ? 'Work Time' : 'Break Time'}
-            </Typography>
+              <Typography variant="h6" gutterBottom>
+                {isWorkTime ? 'Work Time' : 'Break Time'}
+              </Typography>
 
-            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-              <IconButton
-                size="large"
-                onClick={toggleTimer}
-                color="primary"
-                sx={{ border: 1, borderColor: 'primary.main' }}
-              >
-                {isRunning ? <PauseIcon /> : <PlayIcon />}
-              </IconButton>
-              <IconButton
-                size="large"
-                onClick={resetTimer}
-                color="error"
-                sx={{ border: 1, borderColor: 'error.main' }}
-              >
-                <StopIcon />
-              </IconButton>
-              <IconButton
-                size="large"
-                onClick={skipInterval}
-                color="secondary"
-                sx={{ border: 1, borderColor: 'secondary.main' }}
-              >
-                <SkipIcon />
-              </IconButton>
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                <IconButton
+                  size="large"
+                  onClick={toggleTimer}
+                  color="primary"
+                  sx={{ border: 1, borderColor: 'primary.main' }}
+                >
+                  {isRunning ? <PauseIcon /> : <PlayIcon />}
+                </IconButton>
+                <IconButton
+                  size="large"
+                  onClick={resetTimer}
+                  color="error"
+                  sx={{ border: 1, borderColor: 'error.main' }}
+                >
+                  <StopIcon />
+                </IconButton>
+                <IconButton
+                  size="large"
+                  onClick={skipInterval}
+                  color="secondary"
+                  sx={{ border: 1, borderColor: 'secondary.main' }}
+                >
+                  <SkipIcon />
+                </IconButton>
+              </Stack>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Stack spacing={2}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Completed Pomodoros
+                  </Typography>
+                  <Typography variant="h4">{pomodoroCount}</Typography>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Total Study Time
+                  </Typography>
+                  <Typography variant="h4">
+                    {formatTotalTime(totalStudyTime)}
+                  </Typography>
+                </CardContent>
+              </Card>
             </Stack>
-          </Paper>
+          </Grid>
         </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Stack spacing={2}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  Completed Pomodoros
-                </Typography>
-                <Typography variant="h4">{pomodoroCount}</Typography>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  Total Study Time
-                </Typography>
-                <Typography variant="h4">
-                  {formatTotalTime(totalStudyTime)}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Stack>
-        </Grid>
-      </Grid>
-    </Box>
+      </Box>
+    </div>
   );
 };
 

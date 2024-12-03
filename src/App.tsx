@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { theme } from './styles/theme';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
@@ -52,25 +55,28 @@ const App: React.FC<AppProps> = () => {
   }, []);
 
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <Router>
-          <div className="app app-container">
-            <Navbar 
-              onLoginClick={() => setIsAuthModalOpen(true)} 
-              className="sticky-header no-select"
-            />
-            <AuthModal 
-              open={isAuthModalOpen} 
-              onClose={() => setIsAuthModalOpen(false)} 
-            />
-            <main className="container scroll-container">
-              <AppRoutes />
-            </main>
-          </div>
-        </Router>
-      </ThemeProvider>
-    </AuthProvider>
+    <MUIThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <ThemeProvider>
+          <Router>
+            <div className="app app-container">
+              <Navbar 
+                onLoginClick={() => setIsAuthModalOpen(true)} 
+                className="sticky-header no-select"
+              />
+              <AuthModal 
+                open={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+              />
+              <main className="container scroll-container">
+                <AppRoutes />
+              </main>
+            </div>
+          </Router>
+        </ThemeProvider>
+      </AuthProvider>
+    </MUIThemeProvider>
   );
 };
 

@@ -91,82 +91,84 @@ const GPACalculator = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        GPA Calculator
-      </Typography>
-      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-        {courses.map((course) => (
-          <Grid container spacing={2} key={course.id} sx={{ mb: 2 }}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                size="small"
-                value={course.name}
-                onChange={(e) => updateCourse(course.id, 'name', e.target.value)}
-                variant="outlined"
-                placeholder="Enter course name"
-                autoFocus={courses.length > 1 && course.id === courses[courses.length - 1].id}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                type="number"
-                size="small"
-                value={course.credits}
-                onChange={(e) => updateCourse(course.id, 'credits', e.target.value)}
-                inputProps={{ min: 0, step: "any" }}
-                variant="outlined"
-                placeholder="Credits"
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel id={`grade-label-${course.id}`}>Grade</InputLabel>
-                <Select
-                  labelId={`grade-label-${course.id}`}
-                  value={course.grade}
-                  onChange={(e) => updateCourse(course.id, 'grade', e.target.value)}
-                  label="Grade"
+    <div className="gpa-calculator app-container">
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          GPA Calculator
+        </Typography>
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          {courses.map((course) => (
+            <Grid container spacing={2} key={course.id} sx={{ mb: 2 }}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={course.name}
+                  onChange={(e) => updateCourse(course.id, 'name', e.target.value)}
+                  variant="outlined"
+                  placeholder="Enter course name"
+                  autoFocus={courses.length > 1 && course.id === courses[courses.length - 1].id}
+                />
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <TextField
+                  type="number"
+                  size="small"
+                  value={course.credits}
+                  onChange={(e) => updateCourse(course.id, 'credits', e.target.value)}
+                  inputProps={{ min: 0, step: "any" }}
+                  variant="outlined"
+                  placeholder="Credits"
+                />
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id={`grade-label-${course.id}`}>Grade</InputLabel>
+                  <Select
+                    labelId={`grade-label-${course.id}`}
+                    value={course.grade}
+                    onChange={(e) => updateCourse(course.id, 'grade', e.target.value)}
+                    label="Grade"
+                  >
+                    <MenuItem value="" sx={{ color: 'text.secondary' }}>Select grade</MenuItem>
+                    {Object.keys(gradePoints).map((grade) => (
+                      <MenuItem key={grade} value={grade}>{grade}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <IconButton
+                  color="error"
+                  onClick={() => removeCourse(course.id)}
+                  disabled={courses.length === 1}
                 >
-                  <MenuItem value="" sx={{ color: 'text.secondary' }}>Select grade</MenuItem>
-                  {Object.keys(gradePoints).map((grade) => (
-                    <MenuItem key={grade} value={grade}>{grade}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={2}>
-              <IconButton
-                color="error"
-                onClick={() => removeCourse(course.id)}
-                disabled={courses.length === 1}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-        ))}
-        <Button
-          startIcon={<AddIcon />}
-          variant="outlined"
-          onClick={addCourse}
-          sx={{ mt: 2 }}
-        >
-          Add Course
-        </Button>
-      </Paper>
-      <Card>
-        <CardContent>
-          <Typography color="text.secondary" gutterBottom>
-            Current GPA
-          </Typography>
-          <Typography variant="h4">
-            {calculateGPA()}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Box>
+          ))}
+          <Button
+            startIcon={<AddIcon />}
+            variant="outlined"
+            onClick={addCourse}
+            sx={{ mt: 2 }}
+          >
+            Add Course
+          </Button>
+        </Paper>
+        <Card>
+          <CardContent>
+            <Typography color="text.secondary" gutterBottom>
+              Current GPA
+            </Typography>
+            <Typography variant="h4">
+              {calculateGPA()}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    </div>
   );
 };
 
