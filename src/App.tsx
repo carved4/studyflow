@@ -10,7 +10,7 @@ import AppRoutes from './routes';
 import AuthModal from './components/Auth/AuthModal';
 import './styles/ios.css';
 
-interface AppProps {}
+type AppProps = {};
 
 const App: React.FC<AppProps> = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
