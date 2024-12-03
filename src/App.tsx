@@ -42,9 +42,15 @@ const App = () => {
         <ThemeProvider>
           <CssBaseline />
           <AuthProvider>
-            <Navbar />
+            <Navbar 
+              onLoginClick={() => setIsAuthModalOpen(true)} 
+              className="sticky-header no-select"
+            />
             <AppRoutes />
-            {isAuthModalOpen && <AuthModal />}
+            <AuthModal 
+              open={isAuthModalOpen} 
+              onClose={() => setIsAuthModalOpen(false)} 
+            />
           </AuthProvider>
         </ThemeProvider>
       </MUIThemeProvider>
