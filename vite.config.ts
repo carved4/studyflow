@@ -6,7 +6,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [
     react({
-      include: '**/*.{jsx,js,ts,tsx}',
+      include: '**/*.{jsx,tsx}',
     }),
   ],
   resolve: {
@@ -16,14 +16,13 @@ export default defineConfig({
     },
   },
   esbuild: {
-    loader: 'jsx',
-    include: /src\/.*\.[jt]sx?$/,
+    loader: 'tsx',
+    include: /src\/.*\.tsx?$/,
     exclude: [],
   },
   optimizeDeps: {
     esbuildOptions: {
       loader: {
-        '.js': 'jsx',
         '.ts': 'tsx',
       },
     },
@@ -33,7 +32,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
-    chunkSizeWarningLimit: 1000, // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
     assetsDir: 'assets',
     rollupOptions: {
       input: {
@@ -44,20 +43,15 @@ export default defineConfig({
         chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]',
         manualChunks(id) {
-          // More granular chunk splitting
           if (id.includes('node_modules')) {
-            // Split large libraries into separate chunks
             if (id.includes('firebase')) {
               return 'vendor-firebase';
             }
-            if (id.includes('@mui') || id.includes('@emotion')) {
+            if (id.includes('@mui')) {
               return 'vendor-mui';
             }
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            if (id.includes('react')) {
               return 'vendor-react';
-            }
-            if (id.includes('redux') || id.includes('react-redux')) {
-              return 'vendor-redux';
             }
             return 'vendor';
           }
@@ -67,7 +61,10 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    host: true,
     strictPort: true,
-    open: true
-  }
-})
+    watch: {
+      usePolling: true,
+    },
+  },
+});
