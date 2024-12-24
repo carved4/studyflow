@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from './styles/theme';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
@@ -38,24 +36,22 @@ const App = () => {
 
   return (
     <Router>
-      <MUIThemeProvider theme={theme}>
-        <ThemeProvider>
-          <CssBaseline />
-          <AuthProvider>
-            <Navbar 
-              onLoginClick={() => setIsAuthModalOpen(true)} 
-              className="sticky-header no-select"
-            />
-            <main className="main-content">
-              <AppRoutes />
-            </main>
-            <AuthModal 
-              open={isAuthModalOpen} 
-              onClose={() => setIsAuthModalOpen(false)} 
-            />
-          </AuthProvider>
-        </ThemeProvider>
-      </MUIThemeProvider>
+      <ThemeProvider>
+        <CssBaseline />
+        <AuthProvider>
+          <Navbar 
+            onLoginClick={() => setIsAuthModalOpen(true)} 
+            className="sticky-header no-select"
+          />
+          <main className="main-content">
+            <AppRoutes />
+          </main>
+          <AuthModal 
+            open={isAuthModalOpen} 
+            onClose={() => setIsAuthModalOpen(false)} 
+          />
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 };

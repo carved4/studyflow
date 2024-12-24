@@ -15,7 +15,16 @@ import {
   Login as LoginIcon,
   Logout as LogoutIcon
 } from '@mui/icons-material';
-import { IconButton, Tooltip } from '@mui/material';
+import { 
+  AppBar,
+  Toolbar,
+  IconButton,
+  Tooltip,
+  Typography,
+  Box,
+  Button,
+  useTheme as useMuiTheme
+} from '@mui/material';
 
 interface NavbarProps {
   onLoginClick: () => void;
@@ -26,6 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { currentUser, isAuthenticated } = useAuth();
   const location = useLocation();
+  const muiTheme = useMuiTheme();
 
   const navItems = [
     { path: '/', icon: <HomeIcon />, label: 'Dashboard' },
@@ -44,7 +54,6 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
     }
   };
 
-  // Get user display name or email
   const getUserDisplayName = () => {
     if (currentUser?.displayName) {
       return currentUser.displayName.split(' ')[0];
@@ -52,52 +61,130 @@ const Navbar: React.FC<NavbarProps> = ({ onLoginClick, className }) => {
     return currentUser?.email?.split('@')[0] || 'User';
   };
 
-  // Conditionally render login/logout button based on authentication
-  const AuthButton = () => (
-    isAuthenticated ? (
-      <Tooltip title={`Logout (${getUserDisplayName()})`}>
-        <IconButton onClick={handleLogout}>
-          <LogoutIcon />
-        </IconButton>
-      </Tooltip>
-    ) : (
-      <IconButton onClick={onLoginClick}>
-        <LoginIcon />
-      </IconButton>
-    )
-  );
-
   return (
-    <nav className={`navbar ${isDarkMode ? 'dark-mode' : ''} ${className}`}>
-      <div className="navbar-content">
-        <div className="navbar-brand">StudyFlow</div>
+    <AppBar 
+      position="fixed" 
+      className={className}
+      sx={{
+        backgroundColor: isDarkMode ? 'rgba(22, 24, 28, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+        borderBottom: `1px solid ${isDarkMode ? 'rgb(47, 51, 54)' : 'rgba(0, 0, 0, 0.08)'}`,
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between', maxWidth: 1280, width: '100%', margin: '0 auto' }}>
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          sx={{
+            textDecoration: 'none',
+            color: isDarkMode ? '#e7e9ea' : '#0f1419',
+            fontWeight: 700,
+            letterSpacing: '-0.5px',
+            '&:hover': {
+              color: muiTheme.palette.primary.main,
+            },
+          }}
+        >
+          StudyFlow
+        </Typography>
 
-        <div className="navbar-menu">
+        <Box sx={{ display: 'flex', gap: 1 }}>
           {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className={`navbar-item ${location.pathname === item.path ? 'active' : ''}`}
+            <Button
+              key={item.path}
+              component={Link}
+              to={item.path}
+              startIcon={item.icon}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                color: location.pathname === item.path 
+                  ? '#fff'
+                  : isDarkMode 
+                    ? '#e7e9ea' 
+                    : '#536471',
+                backgroundColor: location.pathname === item.path
+                  ? muiTheme.palette.primary.main
+                  : 'transparent',
+                '&:hover': {
+                  backgroundColor: location.pathname === item.path
+                    ? muiTheme.palette.primary.dark
+                    : isDarkMode
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(15, 20, 25, 0.1)',
+                  color: location.pathname === item.path
+                    ? '#fff'
+                    : isDarkMode
+                      ? '#fff'
+                      : '#0f1419',
+                },
+              }}
             >
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
+              {item.label}
+            </Button>
           ))}
-        </div>
+        </Box>
 
-        <div className="navbar-actions">
-          <button 
-            className="theme-toggle" 
-            onClick={toggleTheme} 
-            aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </button>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Tooltip title={isDarkMode ? 'Light Mode' : 'Dark Mode'}>
+            <IconButton
+              onClick={toggleTheme}
+              sx={{
+                color: isDarkMode ? '#e7e9ea' : '#536471',
+                '&:hover': {
+                  backgroundColor: isDarkMode
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(15, 20, 25, 0.1)',
+                },
+              }}
+            >
+              {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          </Tooltip>
 
-          <AuthButton />
-        </div>
-      </div>
-    </nav>
+          {isAuthenticated ? (
+            <Tooltip title={`Logout (${getUserDisplayName()})`}>
+              <IconButton
+                onClick={handleLogout}
+                sx={{
+                  color: isDarkMode ? '#e7e9ea' : '#536471',
+                  '&:hover': {
+                    backgroundColor: isDarkMode
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(15, 20, 25, 0.1)',
+                  },
+                }}
+              >
+                <LogoutIcon />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Button
+              onClick={onLoginClick}
+              startIcon={<LoginIcon />}
+              variant="outlined"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                borderColor: isDarkMode ? '#e7e9ea' : '#536471',
+                color: isDarkMode ? '#e7e9ea' : '#536471',
+                '&:hover': {
+                  borderColor: isDarkMode ? '#fff' : '#0f1419',
+                  color: isDarkMode ? '#fff' : '#0f1419',
+                  backgroundColor: isDarkMode
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(15, 20, 25, 0.1)',
+                },
+              }}
+            >
+              Login
+            </Button>
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

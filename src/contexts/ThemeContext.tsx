@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-import { ThemeProvider as MUIThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { lightTheme, darkTheme } from '../styles/theme';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -38,35 +39,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('theme', mode);
   }, []);
 
-  // Memoized theme creation for performance
-  const theme = useMemo(() => createTheme({
-    palette: {
-      mode: isDarkMode ? 'dark' : 'light',
-      primary: {
-        main: isDarkMode ? '#60a5fa' : '#3b82f6',
-      },
-      background: {
-        default: isDarkMode ? '#121212' : '#ffffff',
-        paper: isDarkMode ? '#1e1e1e' : '#f4f4f7',
-      },
-    },
-    typography: {
-      fontFamily: 'Inter, Roboto, Arial, sans-serif',
-    },
-    components: {
-      MuiCssBaseline: {
-        styleOverrides: `
-          @keyframes themeTransition {
-            from { opacity: 0.7; }
-            to { opacity: 1; }
-          }
-          body {
-            animation: themeTransition 0.3s ease-in-out;
-          }
-        `,
-      },
-    },
-  }), [isDarkMode]);
+  // Use our predefined themes
+  const theme = useMemo(() => 
+    isDarkMode ? darkTheme : lightTheme,
+  [isDarkMode]);
 
   // Performant theme application
   useEffect(() => {
