@@ -5,7 +5,6 @@ import {
   doc, 
   setDoc, 
   onSnapshot,
-  collection,
   serverTimestamp,
   getDoc
 } from 'firebase/firestore';

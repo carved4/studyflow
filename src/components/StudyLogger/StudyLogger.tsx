@@ -60,56 +60,6 @@ const formatDuration = (minutes: number): string => {
   return `${minutes}m`;
 };
 
-// Utility function to get productivity color
-const getProductivityColor = (productivity: string): 'success' | 'warning' | 'error' | 'default' => {
-  switch (productivity) {
-    case 'High':
-      return 'success';
-    case 'Medium':
-      return 'warning';
-    case 'Low':
-      return 'error';
-    default:
-      return 'default';
-  }
-};
-
-// Utility function to get most studied subject
-const getMostStudiedSubject = (sessions: StudySession[]): string => {
-  if (sessions.length === 0) return 'N/A';
-  
-  const subjectCounts = sessions.reduce((acc, session) => {
-    acc[session.subject] = (acc[session.subject] || 0) + session.duration;
-    return acc;
-  }, {} as Record<string, number>);
-
-  return Object.entries(subjectCounts).reduce((a, b) => 
-    b[1] > a[1] ? b : a
-  )[0];
-};
-
-// Utility function to get average productivity
-const getAverageProductivity = (sessions: StudySession[]): string => {
-  if (sessions.length === 0) return 'N/A';
-  
-  const productivityMap: Record<StudySession['productivity'], number> = { 
-    High: 3, 
-    Medium: 2, 
-    Low: 1 
-  };
-  
-  const total = sessions.reduce(
-    (sum, session) => sum + productivityMap[session.productivity], 
-    0
-  );
-  
-  const average = total / sessions.length;
-  
-  if (average >= 2.5) return 'High';
-  if (average >= 1.5) return 'Medium';
-  return 'Low';
-};
-
 const StudyLogger: React.FC = () => {
   const [sessions, setSessions, isLoading, error] = useFirebaseState<StudySession[]>('study-sessions', []);
   const [open, setOpen] = useState(false);
@@ -319,7 +269,7 @@ const StudyLogger: React.FC = () => {
                           </Typography>
                           <Chip
                             label={session.productivity}
-                            color={getProductivityColor(session.productivity)}
+                            color={session.productivity === 'High' ? 'success' : session.productivity === 'Medium' ? 'warning' : 'error'}
                             size="small"
                             sx={{ ml: 2 }}
                           />
@@ -432,7 +382,7 @@ const StudyLogger: React.FC = () => {
                   </Typography>
                   <Chip
                     label={averageProductivity}
-                    color={getProductivityColor(averageProductivity)}
+                    color={averageProductivity === 'High' ? 'success' : averageProductivity === 'Medium' ? 'warning' : 'error'}
                     sx={{ ml: 2 }}
                   />
                 </Box>

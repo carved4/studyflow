@@ -1,29 +1,25 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
+  Alert,
   Box,
-  Paper,
-  Typography,
-  TextField,
   Button,
+  Card,
+  CardContent,
+  Stack,
   Grid,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
-  Card,
-  CardContent,
-  Stack,
-  useTheme,
-  Tooltip,
+  TextField,
+  Typography,
   CircularProgress,
-  Alert,
 } from '@mui/material';
 import { Delete as DeleteIcon, Add as AddIcon, Brightness4 as ThemeIcon } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
-import { GradeItem, GradePredictorProps, GradeField } from './types';
 import { useFirebaseState } from '../../hooks/useFirebaseState';
 
 const DEFAULT_MAX_SCORE = 100;
@@ -39,8 +35,7 @@ interface Assignment {
   maxScore: number;
 }
 
-const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
-  const muiTheme = useTheme();
+const GradePredictor: React.FC = () => {
   const { isDarkMode, toggleTheme } = useCustomTheme();
   
   const [assignments, setAssignments, isLoading, error] = useFirebaseState<Assignment[]>('grade-predictor', [{
@@ -135,7 +130,7 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
   }
 
   return (
-    <div className={`grade-predictor app-container ${className}`}>
+    <div className="grade-predictor app-container">
       <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
         <Box sx={{ 
           display: 'flex', 
