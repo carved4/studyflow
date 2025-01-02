@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Modal, 
   Box, 
@@ -22,7 +22,7 @@ import zxcvbn from 'zxcvbn';
 
 import { signIn, signUp } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
-import { useIOSKeyboard } from '../../hooks/useIOSKeyboard'; // Import the useIOSKeyboard hook
+import { useIOSKeyboard } from '../../hooks/useIOSKeyboard';
 
 interface AuthModalProps {
   open: boolean;
@@ -48,39 +48,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
 
   // Use iOS keyboard hook
   useIOSKeyboard();
-
-  // If user is already logged in, don't show the modal
-  if (currentUser) {
-    onClose();
-    return null;
-  }
-
-  // Style adjustments for iOS
-  const modalStyle = {
-    position: 'absolute' as const,
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    maxWidth: 400,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p: 4,
-    borderRadius: 2,
-    outline: 'none',
-    maxHeight: '90vh',
-    overflowY: 'auto' as const,
-    WebkitOverflowScrolling: 'touch' as const,
-  };
-
-  const inputProps = {
-    style: {
-      WebkitAppearance: 'none' as const,
-      borderRadius: '4px',
-      fontSize: '16px',
-    },
-    className: 'no-select',
-  };
 
   // Login Schema
   const loginSchema = yup.object().shape({
@@ -129,7 +96,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
 
   // Password strength calculation
   const watchPassword = watchSignup('password');
-  React.useEffect(() => {
+  useEffect(() => {
     if (watchPassword) {
       const result = zxcvbn(watchPassword);
       setPasswordStrength(result.score);
@@ -162,10 +129,43 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
     }
   };
 
+  // Style adjustments for iOS
+  const modalStyle = {
+    position: 'absolute' as const,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90%',
+    maxWidth: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
+    outline: 'none',
+    maxHeight: '90vh',
+    overflowY: 'auto' as const,
+    WebkitOverflowScrolling: 'touch' as const,
+  };
+
+  const inputProps = {
+    style: {
+      WebkitAppearance: 'none' as const,
+      borderRadius: '4px',
+      fontSize: '16px',
+    },
+    className: 'no-select',
+  };
+
   // Close error message
   const handleCloseError = () => {
     setErrorMessage(null);
   };
+
+  // Don't render if user is logged in
+  if (currentUser) {
+    onClose();
+    return null;
+  }
 
   return (
     <>

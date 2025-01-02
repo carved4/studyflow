@@ -183,7 +183,17 @@ const StudyLogger: React.FC = () => {
   };
 
   return (
-    <Box className="app-container" sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+    <Box 
+      className="app-container" 
+      sx={{ 
+        maxWidth: 1200, 
+        mx: 'auto', 
+        p: 3,
+        backgroundColor: '#16181c',
+        borderRadius: 2,
+        border: '1px solid rgb(47, 51, 54)',
+      }}
+    >
       <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Grid item>
           <Typography variant="h4" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -195,6 +205,7 @@ const StudyLogger: React.FC = () => {
         </Grid>
         <Grid item>
           <Button
+            variant="contained"
             className="log-study-session-btn"
             startIcon={<AddIcon />}
             onClick={handleClickOpen}
@@ -207,17 +218,18 @@ const StudyLogger: React.FC = () => {
       {sessions.length > 0 ? (
         <Fade in={true}>
           <Paper 
-            elevation={3} 
+            elevation={0}
             sx={{ 
               borderRadius: 2, 
               overflow: 'hidden',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)' 
+              backgroundColor: '#16181c',
+              border: '1px solid rgb(47, 51, 54)',
             }}
           >
             <List>
               {sortedSessions.map((session, index) => (
                 <React.Fragment key={session.id}>
-                  {index > 0 && <Divider />}
+                  {index > 0 && <Divider sx={{ borderColor: 'rgb(47, 51, 54)' }} />}
                   <ListItem
                     secondaryAction={
                       <Box>
@@ -241,9 +253,9 @@ const StudyLogger: React.FC = () => {
                     }
                     sx={{
                       py: 2,
-                      transition: 'background-color 0.3s ease',
+                      transition: 'background-color 0.2s ease',
                       '&:hover': {
-                        backgroundColor: 'action.hover',
+                        backgroundColor: 'rgba(239, 243, 244, 0.1)',
                       }
                     }}
                   >
@@ -311,14 +323,15 @@ const StudyLogger: React.FC = () => {
               p: 3, 
               textAlign: 'center', 
               borderRadius: 2,
-              backgroundColor: 'background.paper'
+              backgroundColor: '#16181c',
+              border: '1px solid rgb(47, 51, 54)',
             }}
           >
             <Alert 
               severity="info" 
               sx={{ 
                 borderRadius: 2,
-                backgroundColor: 'background.paper'
+                backgroundColor: 'rgba(239, 243, 244, 0.1)',
               }}
             >
               No study sessions logged yet. Click "Log Study Session" to get started!
@@ -327,13 +340,24 @@ const StudyLogger: React.FC = () => {
         </Fade>
       )}
 
-      <Grid container spacing={3}>
+      <Grid 
+        container 
+        spacing={3} 
+        sx={{
+          mt: 3,
+          backgroundColor: '#16181c',
+          borderRadius: 2,
+          border: '1px solid rgb(47, 51, 54)',
+          p: 2
+        }}
+      >
         <Grid item xs={12} md={8}>
+          {/* Empty grid for spacing */}
         </Grid>
 
         <Grid item xs={12} md={4}>
           <Stack spacing={2}>
-            <Card sx={{ borderRadius: 2 }}>
+            <Card sx={{ borderRadius: 2, backgroundColor: '#16181c', border: '1px solid rgb(47, 51, 54)' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6" color="text.primary">
@@ -346,7 +370,7 @@ const StudyLogger: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card sx={{ borderRadius: 2 }}>
+            <Card sx={{ borderRadius: 2, backgroundColor: '#16181c', border: '1px solid rgb(47, 51, 54)' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6" color="text.primary">
@@ -366,7 +390,7 @@ const StudyLogger: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card sx={{ borderRadius: 2 }}>
+            <Card sx={{ borderRadius: 2, backgroundColor: '#16181c', border: '1px solid rgb(47, 51, 54)' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6" color="text.primary">
@@ -384,14 +408,13 @@ const StudyLogger: React.FC = () => {
 
       <Dialog
         open={open}
-        TransitionComponent={Transition}
-        keepMounted
         onClose={handleClose}
-        aria-describedby="study-session-dialog-description"
-        sx={{
-          '& .MuiDialog-paper': {
-            borderRadius: 2,
-            minWidth: 400,
+        TransitionComponent={Transition}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#16181c',
+            backgroundImage: 'none',
+            border: '1px solid rgb(47, 51, 54)',
           }
         }}
       >

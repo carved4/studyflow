@@ -60,78 +60,76 @@ const AppRoutes: React.FC = () => {
   return (
     <Router>
       <ErrorBoundary>
-        <AuthProvider>
-          <ThemeProvider>
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={
-                    <ErrorBoundary>
-                      <Home />
-                    </ErrorBoundary>
-                  } 
-                />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/gpa" 
-                  element={
-                    <ProtectedRoute>
-                      <GPACalculator />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/timer" 
-                  element={
-                    <ProtectedRoute>
-                      <StudyTimer />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/assignments" 
-                  element={
-                    <ProtectedRoute>
-                      <AssignmentTracker />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/grade-predictor" 
-                  element={
-                    <ProtectedRoute>
-                      <GradePredictor />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/study-logger" 
-                  element={
-                    <ProtectedRoute>
-                      <StudyLogger />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="*" 
-                  element={
-                    <ErrorBoundary>
-                      <NotFound />
-                    </ErrorBoundary>
-                  } 
-                />
-              </Routes>
-            </Suspense>
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <ErrorBoundary>
+                    <Home />
+                  </ErrorBoundary>
+                } 
+              />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/gpa" 
+                element={
+                  <ProtectedRoute>
+                    <GPACalculator />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/timer" 
+                element={
+                  <ProtectedRoute>
+                    <StudyTimer />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/assignments" 
+                element={
+                  <ProtectedRoute>
+                    <AssignmentTracker />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/grade-predictor" 
+                element={
+                  <ProtectedRoute>
+                    <GradePredictor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/study-logger" 
+                element={
+                  <ProtectedRoute>
+                    <StudyLogger />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="*" 
+                element={
+                  <ErrorBoundary>
+                    <NotFound />
+                  </ErrorBoundary>
+                } 
+              />
+            </Routes>
+          </Suspense>
+        </ThemeProvider>
       </ErrorBoundary>
     </Router>
   );

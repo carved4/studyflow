@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
-import { Box, Typography } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,19 +15,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       <Box 
         sx={{ 
           display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
           justifyContent: 'center', 
-          height: '100vh' 
+          alignItems: 'center', 
+          minHeight: '200px' 
         }}
       >
-        <Typography>Loading...</Typography>
+        <CircularProgress />
       </Box>
     );
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
