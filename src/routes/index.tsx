@@ -17,7 +17,6 @@ const NotFound = lazy(() => import('../pages/NotFound'));
 
 // Existing components
 import ProtectedRoute from './ProtectedRoute';
-import { AuthProvider } from '../contexts/AuthContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 
 // Error Boundary Component
