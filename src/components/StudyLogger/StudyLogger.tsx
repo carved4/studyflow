@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Box, 
   Grid, 
@@ -22,12 +22,14 @@ import {
   Chip,
   Card,
   CardContent,
-  Stack
+  Stack,
+  CircularProgress
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useFirebaseState } from '../../hooks/useFirebaseState';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -109,7 +111,7 @@ const getAverageProductivity = (sessions: StudySession[]): string => {
 };
 
 const StudyLogger: React.FC = () => {
-  const [sessions, setSessions] = useState<StudySession[]>([]);
+  const [sessions, setSessions, isLoading, error] = useFirebaseState<StudySession[]>('study-sessions', []);
   const [open, setOpen] = useState(false);
   const [editSession, setEditSession] = useState<StudySession | null>(null);
   const [newSession, setNewSession] = useState<Omit<StudySession, 'id'>>({
@@ -119,6 +121,49 @@ const StudyLogger: React.FC = () => {
     notes: '',
     productivity: 'Medium'
   });
+
+  const sortedSessions = useMemo(() => {
+    return [...(sessions || [])].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [sessions]);
+
+  const totalStudyTime = useMemo(() => {
+    return sessions.reduce((total, session) => total + session.duration, 0);
+  }, [sessions]);
+
+  const averageProductivity = useMemo(() => {
+    if (sessions.length === 0) return 'N/A';
+    
+    const productivityScores = {
+      'High': 3,
+      'Medium': 2,
+      'Low': 1
+    };
+    
+    const totalScore = sessions.reduce((sum, session) => 
+      sum + productivityScores[session.productivity], 0
+    );
+    
+    const average = totalScore / sessions.length;
+    
+    if (average >= 2.5) return 'High';
+    if (average >= 1.5) return 'Medium';
+    return 'Low';
+  }, [sessions]);
+
+  const mostStudiedSubject = useMemo(() => {
+    if (sessions.length === 0) return 'N/A';
+    
+    const subjectCount = sessions.reduce((counts: { [key: string]: number }, session) => {
+      counts[session.subject] = (counts[session.subject] || 0) + 1;
+      return counts;
+    }, {});
+    
+    return Object.entries(subjectCount).reduce((a, b) => 
+      a[1] > b[1] ? a : b
+    )[0];
+  }, [sessions]);
 
   const handleClickOpen = () => {
     setEditSession(null);
@@ -137,19 +182,17 @@ const StudyLogger: React.FC = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editSession) {
-      // Update existing session
-      setSessions(prev => 
-        prev.map(s => s.id === editSession.id ? { ...s, ...newSession } : s)
+      await setSessions(prev => 
+        prev.map(s => s.id === editSession.id ? { ...s, ...newSession, id: s.id } : s)
       );
     } else {
-      // Add new session
-      setSessions(prev => [
-        ...prev, 
-        { 
-          ...newSession, 
-          id: prev.length > 0 ? Math.max(...prev.map(s => s.id)) + 1 : 1 
+      await setSessions(prev => [
+        ...prev,
+        {
+          ...newSession,
+          id: prev.length > 0 ? Math.max(...prev.map(s => s.id)) + 1 : 1
         }
       ]);
     }
@@ -168,19 +211,25 @@ const StudyLogger: React.FC = () => {
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setSessions(prev => prev.filter(s => s.id !== id));
+  const handleDelete = async (id: number) => {
+    await setSessions(prev => prev.filter(s => s.id !== id));
   };
 
-  const sortedSessions = useMemo(() => {
-    return [...sessions].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
     );
-  }, [sessions]);
+  }
 
-  const getTotalStudyTime = () => {
-    return sessions.reduce((total, session) => total + session.duration, 0);
-  };
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        Error loading study sessions: {error.message}
+      </Alert>
+    );
+  }
 
   return (
     <Box 
@@ -365,7 +414,7 @@ const StudyLogger: React.FC = () => {
                   </Typography>
                 </Box>
                 <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                  {formatDuration(getTotalStudyTime())}
+                  {formatDuration(totalStudyTime)}
                 </Typography>
               </CardContent>
             </Card>
@@ -379,11 +428,11 @@ const StudyLogger: React.FC = () => {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {getAverageProductivity(sessions)}
+                    {averageProductivity}
                   </Typography>
                   <Chip
-                    label={getAverageProductivity(sessions)}
-                    color={getProductivityColor(getAverageProductivity(sessions))}
+                    label={averageProductivity}
+                    color={getProductivityColor(averageProductivity)}
                     sx={{ ml: 2 }}
                   />
                 </Box>
@@ -398,7 +447,7 @@ const StudyLogger: React.FC = () => {
                   </Typography>
                 </Box>
                 <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                  {getMostStudiedSubject(sessions)}
+                  {mostStudiedSubject}
                 </Typography>
               </CardContent>
             </Card>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -18,21 +18,32 @@ import {
   Stack,
   useTheme,
   Tooltip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import { Delete as DeleteIcon, Add as AddIcon, Brightness4 as ThemeIcon } from '@mui/icons-material';
 import { useTheme as useCustomTheme } from '../../contexts/ThemeContext';
 import { GradeItem, GradePredictorProps, GradeField } from './types';
+import { useFirebaseState } from '../../hooks/useFirebaseState';
 
 const DEFAULT_MAX_SCORE = 100;
 const DEFAULT_TARGET_GRADE = 90;
 const MIN_GRADE = 0;
 const MAX_GRADE = 100;
 
+interface Assignment {
+  id: number;
+  name: string;
+  weight: number;
+  score: number;
+  maxScore: number;
+}
+
 const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
   const muiTheme = useTheme();
   const { isDarkMode, toggleTheme } = useCustomTheme();
   
-  const [gradeItems, setGradeItems] = useState<GradeItem[]>([{
+  const [assignments, setAssignments, isLoading, error] = useFirebaseState<Assignment[]>('grade-predictor', [{
     id: Date.now(),
     name: '',
     weight: 0,
@@ -41,136 +52,65 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
   }]);
   
   const [targetGrade, setTargetGrade] = useState<number>(DEFAULT_TARGET_GRADE);
-  const [error, setError] = useState<string>('');
 
-  // Memoized Calculations
-  const totalWeight = useMemo(() => 
-    gradeItems.reduce((sum, item) => sum + item.weight, 0),
-    [gradeItems]
-  );
-
-  const currentGrade = useMemo(() => {
-    let weightedScore = 0;
-    let effectiveWeight = 0;
-
-    gradeItems.forEach(item => {
-      if (item.weight <= 0 || item.maxScore <= 0) return;
-      
-      const percentage = (item.score / item.maxScore) * 100;
-      weightedScore += percentage * (item.weight / 100);
-      effectiveWeight += item.weight;
-    });
-
-    if (effectiveWeight === 0) return 0;
-    return Number((weightedScore * (100 / effectiveWeight)).toFixed(2));
-  }, [gradeItems]);
-
-  const neededScore = useMemo(() => {
-    if (targetGrade < MIN_GRADE || targetGrade > MAX_GRADE) {
-      return 'Invalid target';
-    }
-
-    const remainingWeight = MAX_GRADE - totalWeight;
-    
-    if (remainingWeight <= 0) return 'N/A';
-    
-    const neededScore = ((targetGrade - currentGrade * (1 - remainingWeight / 100)) /
-      (remainingWeight / 100));
-
-    if (neededScore < MIN_GRADE) return '0.00';
-    if (neededScore > MAX_GRADE) return 'Impossible';
-    return neededScore.toFixed(2);
-  }, [currentGrade, targetGrade, totalWeight]);
-
-  // Handlers
-  const handleAddItem = useCallback(() => {
-    const newItem: GradeItem = {
-      id: Date.now(),
+  const addAssignment = useCallback(() => {
+    const newId = assignments.length > 0 ? Math.max(...assignments.map(a => a.id)) + 1 : 1;
+    setAssignments([...assignments, {
+      id: newId,
       name: '',
       weight: 0,
       score: 0,
       maxScore: DEFAULT_MAX_SCORE,
-    };
-    setGradeItems(prev => [...prev, newItem]);
-    setError('');
-  }, []);
+    }]);
+  }, [assignments]);
 
-  const handleRemoveItem = useCallback((id: number) => {
-    if (gradeItems.length <= 1) return;
-    setGradeItems(prev => prev.filter(item => item.id !== id));
-    setError('');
-  }, [gradeItems.length]);
+  const updateAssignment = useCallback((id: number, field: keyof Assignment, value: number | string) => {
+    setAssignments(assignments.map(assignment =>
+      assignment.id === id ? { ...assignment, [field]: value } : assignment
+    ));
+  }, [assignments]);
 
-  const validateInput = useCallback((
-    field: GradeField,
-    value: number,
-    item?: GradeItem
-  ): string | null => {
-    switch (field) {
-      case 'weight':
-        if (value < MIN_GRADE || value > MAX_GRADE) {
-          return 'Weight must be between 0 and 100';
-        }
-        const newTotalWeight = totalWeight - (item?.weight || 0) + value;
-        if (newTotalWeight > MAX_GRADE) {
-          return 'Total weight cannot exceed 100%';
-        }
-        break;
-      case 'score':
-        if (item && (value < MIN_GRADE || value > item.maxScore)) {
-          return `Score must be between 0 and ${item.maxScore}`;
-        }
-        break;
-      case 'maxScore':
-        if (value <= MIN_GRADE) {
-          return 'Max score must be greater than 0';
-        }
-        break;
-    }
-    return null;
-  }, [totalWeight]);
+  const deleteAssignment = useCallback((id: number) => {
+    setAssignments(assignments.filter(assignment => assignment.id !== id));
+  }, [assignments]);
 
-  const handleUpdateItem = useCallback((
-    id: number,
-    field: GradeField,
-    value: string | number
-  ) => {
-    setGradeItems(prev => {
-      const itemIndex = prev.findIndex(item => item.id === id);
-      if (itemIndex === -1) return prev;
+  const calculateCurrentGrade = useMemo(() => {
+    let totalWeightedScore = 0;
+    let totalWeight = 0;
 
-      const newItems = [...prev];
-      const item = { ...newItems[itemIndex] };
+    assignments.forEach(assignment => {
+      const weight = Number(assignment.weight);
+      const score = Number(assignment.score);
+      const maxScore = Number(assignment.maxScore);
 
-      if (field === 'name') {
-        item.name = value as string;
-      } else {
-        const numValue = typeof value === 'number' ? value : Number(value);
-        
-        if (isNaN(numValue)) {
-          setError(`Please enter a valid number for ${field}`);
-          return prev;
-        }
-
-        const validationError = validateInput(field, numValue, item);
-        if (validationError) {
-          setError(validationError);
-          return prev;
-        }
-
-        item[field] = numValue;
-        
-        // Adjust score if maxScore changes
-        if (field === 'maxScore' && item.score > numValue) {
-          item.score = numValue;
-        }
+      if (weight > 0 && maxScore > 0) {
+        const percentage = (score / maxScore) * 100;
+        totalWeightedScore += percentage * (weight / 100);
+        totalWeight += weight;
       }
-
-      newItems[itemIndex] = item;
-      setError('');
-      return newItems;
     });
-  }, [validateInput]);
+
+    // Return 0 if no valid assignments, otherwise calculate weighted average
+    return totalWeight === 0 ? 0 : (totalWeightedScore / totalWeight) * totalWeight;
+  }, [assignments]);
+
+  const calculateNeededScore = useMemo(() => {
+    if (targetGrade < MIN_GRADE || targetGrade > MAX_GRADE) {
+      return 'Invalid target';
+    }
+
+    const totalWeight = assignments.reduce((sum, assignment) => sum + Number(assignment.weight), 0);
+    const remainingWeight = 100 - totalWeight;
+    
+    if (remainingWeight <= 0) return 'N/A';
+    
+    const currentWeightedGrade = calculateCurrentGrade * (totalWeight / 100);
+    const neededScore = ((targetGrade - currentWeightedGrade) / remainingWeight) * 100;
+
+    if (neededScore < MIN_GRADE) return '0.00';
+    if (neededScore > MAX_GRADE) return 'Impossible';
+    return neededScore.toFixed(2);
+  }, [calculateCurrentGrade, targetGrade, assignments]);
 
   const getGradeColor = useCallback((grade: number): 'success.main' | 'warning.main' | 'error.main' => {
     if (grade >= 90) return 'success.main';
@@ -178,17 +118,25 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
     return 'error.main';
   }, []);
 
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        Error loading grade predictor data: {error.message}
+      </Alert>
+    );
+  }
+
   return (
     <div className={`grade-predictor app-container ${className}`}>
-      <Box 
-        sx={{ 
-          maxWidth: 800, 
-          mx: 'auto', 
-          p: 3,
-          backgroundColor: muiTheme.palette.background.default,
-          minHeight: '100vh',
-        }}
-      >
+      <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -198,246 +146,183 @@ const GradePredictor: React.FC<GradePredictorProps> = ({ className }) => {
           gap: 2 
         }}>
           <Typography variant="h4">Grade Predictor</Typography>
-          <Button 
-            variant="outlined" 
-            onClick={toggleTheme}
-            color={isDarkMode ? 'secondary' : 'primary'}
-            startIcon={<ThemeIcon />}
-          >
-            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <TextField
+              label="Target Grade"
+              type="number"
+              size="small"
+              value={targetGrade}
+              onChange={(e) => {
+                const value = Math.min(Math.max(Number(e.target.value), MIN_GRADE), MAX_GRADE);
+                setTargetGrade(value);
+              }}
+              sx={{ width: 120 }}
+            />
+            <Button 
+              variant="outlined" 
+              onClick={toggleTheme}
+              color={isDarkMode ? 'secondary' : 'primary'}
+              startIcon={<ThemeIcon />}
+            >
+              {isDarkMode ? 'Light' : 'Dark'}
+            </Button>
+          </Stack>
         </Box>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Paper elevation={3} sx={{ p: 3, mb: 3, overflowX: 'auto' }}>
-              {error && (
-                <Typography color="error" sx={{ mb: 2 }} variant="body2">
-                  {error}
-                </Typography>
-              )}
-              
-              <TableContainer sx={{ minWidth: { xs: '100%', sm: 'auto' } }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ minWidth: { xs: '120px', sm: '150px' } }}>Assessment</TableCell>
-                      <TableCell align="right" sx={{ minWidth: '100px' }}>Weight (%)</TableCell>
-                      <TableCell align="right" sx={{ minWidth: '100px' }}>Score</TableCell>
-                      <TableCell align="right" sx={{ minWidth: '100px' }}>Max Score</TableCell>
-                      <TableCell align="right" sx={{ width: '60px' }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {gradeItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            value={item.name}
-                            onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
-                            placeholder="Enter assessment name"
-                            aria-label="Assessment name"
-                            sx={{ 
-                              minWidth: { xs: '120px', sm: '150px' },
-                              '& .MuiInputBase-root': {
-                                height: '36px'
-                              }
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="Weight must be between 0 and 100">
-                            <TextField
-                              size="small"
-                              value={item.weight}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/[^\d.]/g, '');
-                                handleUpdateItem(item.id, 'weight', value);
-                              }}
-                              inputProps={{
-                                inputMode: 'decimal',
-                                pattern: '[0-9]*\\.?[0-9]*',
-                                style: { textAlign: 'right' }
-                              }}
-                              placeholder="0-100"
-                              aria-label="Weight"
-                              sx={{ 
-                                width: '80px',
-                                '& .MuiInputBase-root': {
-                                  height: '36px'
-                                },
-                                '& .MuiInputBase-input': {
-                                  px: 1
-                                }
-                              }}
-                            />
-                          </Tooltip>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title={`Score must be between 0 and ${item.maxScore}`}>
-                            <TextField
-                              size="small"
-                              value={item.score}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/[^\d.]/g, '');
-                                handleUpdateItem(item.id, 'score', value);
-                              }}
-                              inputProps={{
-                                inputMode: 'decimal',
-                                pattern: '[0-9]*\\.?[0-9]*',
-                                style: { textAlign: 'right' }
-                              }}
-                              placeholder={`0-${item.maxScore}`}
-                              aria-label="Score"
-                              sx={{ 
-                                width: '80px',
-                                '& .MuiInputBase-root': {
-                                  height: '36px'
-                                },
-                                '& .MuiInputBase-input': {
-                                  px: 1
-                                }
-                              }}
-                            />
-                          </Tooltip>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="Max score must be greater than 0">
-                            <TextField
-                              size="small"
-                              value={item.maxScore}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/[^\d.]/g, '');
-                                handleUpdateItem(item.id, 'maxScore', value);
-                              }}
-                              inputProps={{
-                                inputMode: 'decimal',
-                                pattern: '[0-9]*\\.?[0-9]*',
-                                style: { textAlign: 'right' }
-                              }}
-                              placeholder="Max points"
-                              aria-label="Max score"
-                              sx={{ 
-                                width: '80px',
-                                '& .MuiInputBase-root': {
-                                  height: '36px'
-                                },
-                                '& .MuiInputBase-input': {
-                                  px: 1
-                                }
-                              }}
-                            />
-                          </Tooltip>
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            color="error"
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={gradeItems.length === 1}
-                            aria-label="Remove assessment"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <Button
-                startIcon={<AddIcon />}
-                variant="outlined"
-                onClick={handleAddItem}
-                sx={{ mt: 2 }}
-                color="primary"
-                aria-label="Add assessment"
-              >
-                Add Assessment
-              </Button>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Stack spacing={2}>
-              <Card 
-                variant="outlined"
-                sx={{ 
-                  backgroundColor: muiTheme.palette.background.paper,
-                  transition: 'transform 0.2s ease',
-                  '&:hover': { transform: 'scale(1.02)' }
-                }}
-              >
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Current Grade
-                  </Typography>
-                  <Typography 
-                    variant="h4" 
-                    color={getGradeColor(currentGrade)}
+          <Grid item xs={12}>
+            <Card elevation={3}>
+              <CardContent>
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6">Assessments</Typography>
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={addAssignment}
+                    size="small"
                   >
-                    {currentGrade}%
-                  </Typography>
-                </CardContent>
-              </Card>
+                    Add Assessment
+                  </Button>
+                </Box>
+                
+                <TableContainer>
+                  <Table size="small" sx={{ '& .MuiTableCell-root': { py: 1 } }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Assessment</TableCell>
+                        <TableCell align="center">Weight (%)</TableCell>
+                        <TableCell align="center">Score</TableCell>
+                        <TableCell align="center">Max Score</TableCell>
+                        <TableCell align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {assignments.map((assignment) => (
+                        <TableRow key={assignment.id}>
+                          <TableCell sx={{ width: '30%' }}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              value={assignment.name}
+                              onChange={(e) => updateAssignment(assignment.id, 'name', e.target.value)}
+                              placeholder="Enter name"
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={assignment.weight}
+                              onChange={(e) => {
+                                const value = Math.min(Math.max(Number(e.target.value), 0), 100);
+                                updateAssignment(assignment.id, 'weight', value);
+                              }}
+                              inputProps={{ min: 0, max: 100 }}
+                              sx={{ width: '80px' }}
+                            />
+                          </TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={assignment.score}
+                              onChange={(e) => {
+                                const value = Math.max(Number(e.target.value), 0);
+                                updateAssignment(assignment.id, 'score', value);
+                              }}
+                              inputProps={{ min: 0 }}
+                              sx={{ width: '80px' }}
+                            />
+                          </TableCell>
+                          <TableCell align="center" sx={{ width: '20%' }}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={assignment.maxScore}
+                              onChange={(e) => {
+                                const value = Math.max(Number(e.target.value), 1);
+                                updateAssignment(assignment.id, 'maxScore', value);
+                              }}
+                              inputProps={{ min: 1 }}
+                              sx={{ width: '80px' }}
+                            />
+                          </TableCell>
+                          <TableCell align="right" sx={{ width: '10%' }}>
+                            <IconButton
+                              onClick={() => deleteAssignment(assignment.id)}
+                              size="small"
+                              color="error"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
-              <Card 
-                variant="outlined"
-                sx={{ 
-                  backgroundColor: muiTheme.palette.background.paper,
-                  transition: 'transform 0.2s ease',
-                  '&:hover': { transform: 'scale(1.02)' }
-                }}
-              >
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Target Grade
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    value={targetGrade}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^\d.]/g, '');
-                      const numValue = Number(value);
-                      if (!value || (numValue >= MIN_GRADE && numValue <= MAX_GRADE)) {
-                        setTargetGrade(numValue);
-                        setError('');
-                      }
-                    }}
-                    inputProps={{
-                      inputMode: 'decimal',
-                      pattern: '[0-9]*\\.?[0-9]*',
-                      style: { textAlign: 'right' }
-                    }}
-                    placeholder="Target grade (0-100)"
-                    aria-label="Target grade"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card 
-                variant="outlined"
-                sx={{ 
-                  backgroundColor: muiTheme.palette.background.paper,
-                  transition: 'transform 0.2s ease',
-                  '&:hover': { transform: 'scale(1.02)' }
-                }}
-              >
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Needed Score for Remaining Work
-                  </Typography>
-                  <Typography variant="h4" color={getGradeColor(Number(neededScore) || 0)}>
-                    {neededScore}%
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Remaining Weight: {(MAX_GRADE - totalWeight).toFixed(1)}%
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Stack>
+                <Grid container spacing={3} sx={{ mt: 2 }}>
+                  <Grid item xs={12} md={4}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Current Grade
+                        </Typography>
+                        <Typography 
+                          variant="h4" 
+                          sx={{ 
+                            color: getGradeColor(calculateCurrentGrade),
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {calculateCurrentGrade.toFixed(2)}%
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Target Grade
+                        </Typography>
+                        <Typography 
+                          variant="h4" 
+                          sx={{ 
+                            color: getGradeColor(targetGrade),
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {targetGrade}%
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Needed Score
+                        </Typography>
+                        <Typography 
+                          variant="h4" 
+                          sx={{ 
+                            color: calculateNeededScore === 'Impossible' ? 'error.main' : 'text.primary',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {calculateNeededScore === 'Impossible' ? '—' : 
+                           calculateNeededScore === 'N/A' ? '—' :
+                           calculateNeededScore === 'Invalid target' ? '—' :
+                           `${calculateNeededScore}%`}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

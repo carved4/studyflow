@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { 
   Box, 
   Grid, 
   Typography, 
   Button, 
-  Paper, 
+  Paper,
   List, 
   ListItem, 
   ListItemText, 
@@ -20,7 +20,8 @@ import {
   Divider,
   Chip,
   Card,
-  CardContent
+  CardContent,
+  CircularProgress
 } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import AddIcon from '@mui/icons-material/Add';
@@ -28,6 +29,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import { useFirebaseState } from '../../hooks/useFirebaseState';
 
 interface Assignment {
   id: number;
@@ -95,10 +97,10 @@ const getCompletionRate = (assignments: Assignment[]): string => {
 };
 
 const AssignmentTracker: React.FC = () => {
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [open, setOpen] = useState(false);
-  const [editAssignment, setEditAssignment] = useState<Assignment | null>(null);
-  const [newAssignment, setNewAssignment] = useState<Omit<Assignment, 'id'>>({
+  const [assignments, setAssignments, isLoading, error] = useFirebaseState<Assignment[]>('assignments', []);
+  const [open, setOpen] = React.useState(false);
+  const [editAssignment, setEditAssignment] = React.useState<Assignment | null>(null);
+  const [newAssignment, setNewAssignment] = React.useState<Omit<Assignment, 'id'>>({
     title: '',
     description: '',
     dueDate: '',
@@ -123,15 +125,15 @@ const AssignmentTracker: React.FC = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editAssignment) {
       // Update existing assignment
-      setAssignments(prev => 
+      await setAssignments(prev => 
         prev.map(a => a.id === editAssignment.id ? { ...a, ...newAssignment } : a)
       );
     } else {
       // Add new assignment
-      setAssignments(prev => [
+      await setAssignments(prev => [
         ...prev, 
         { 
           ...newAssignment, 
@@ -155,12 +157,12 @@ const AssignmentTracker: React.FC = () => {
     setOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setAssignments(prev => prev.filter(a => a.id !== id));
+  const handleDelete = async (id: number) => {
+    await setAssignments(prev => prev.filter(a => a.id !== id));
   };
 
-  const handleToggleComplete = (id: number) => {
-    setAssignments(prev => 
+  const handleToggleComplete = async (id: number) => {
+    await setAssignments(prev => 
       prev.map(a => 
         a.id === id ? { ...a, completed: !a.completed } : a
       )
@@ -168,14 +170,29 @@ const AssignmentTracker: React.FC = () => {
   };
 
   const sortedAssignments = useMemo(() => {
-    return [...assignments].sort((a, b) => {
-      // Sort by completion status (incomplete first), then by due date
+    return [...(assignments || [])].sort((a, b) => {
       if (a.completed !== b.completed) {
         return a.completed ? 1 : -1;
       }
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
   }, [assignments]);
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="error">Error: {error.message}</Typography>
+      </Box>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box className="app-container" sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>

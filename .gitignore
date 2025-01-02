@@ -38,3 +38,28 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# Firebase
+.firebase/
+firebase-debug.log*
+ui-debug.log*
+database-debug.log*
+firestore-debug.log*
+pubsub-debug.log*
+
+# Testing
+/coverage
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cache directories
+.cache/
+.eslintcache
+.stylelintcache
+
+# TypeScript
+*.tsbuildinfo

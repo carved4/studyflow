@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   Grid,
+  Alert
 } from '@mui/material';
 import {
   PlayArrow as PlayIcon,
@@ -16,17 +17,28 @@ import {
   Stop as StopIcon,
   SkipNext as SkipIcon,
 } from '@mui/icons-material';
+import { useFirebaseState } from '../../hooks/useFirebaseState';
 
 const WORK_TIME = 25 * 60; // 25 minutes in seconds
 const SHORT_BREAK = 5 * 60; // 5 minutes in seconds
 const LONG_BREAK = 15 * 60; // 15 minutes in seconds
 
+interface TimerState {
+  pomodoroCount: number;
+  totalStudyTime: number;
+  isWorkTime: boolean;
+}
+
 const StudyTimer = () => {
   const [timeLeft, setTimeLeft] = useState(WORK_TIME);
   const [isRunning, setIsRunning] = useState(false);
-  const [isWorkTime, setIsWorkTime] = useState(true);
-  const [pomodoroCount, setPomodoroCount] = useState(0);
-  const [totalStudyTime, setTotalStudyTime] = useState(0);
+  const [timerState, setTimerState, isLoading, error] = useFirebaseState<TimerState>('timer-state', {
+    pomodoroCount: 0,
+    totalStudyTime: 0,
+    isWorkTime: true
+  });
+
+  const { pomodoroCount, totalStudyTime, isWorkTime } = timerState;
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -35,7 +47,10 @@ const StudyTimer = () => {
       interval = setInterval(() => {
         setTimeLeft((prevTime) => prevTime - 1);
         if (isWorkTime) {
-          setTotalStudyTime((prev) => prev + 1);
+          setTimerState(prev => ({
+            ...prev,
+            totalStudyTime: prev.totalStudyTime + 1
+          }));
         }
       }, 1000);
     } else if (timeLeft === 0) {
@@ -46,21 +61,24 @@ const StudyTimer = () => {
   }, [isRunning, timeLeft, isWorkTime]);
 
   const handleTimerComplete = () => {
+    const audio = new Audio('/notification.mp3');
+    audio.play();
+    
     if (isWorkTime) {
-      setPomodoroCount((prev) => prev + 1);
-      const isLongBreak = (pomodoroCount + 1) % 4 === 0;
-      setTimeLeft(isLongBreak ? LONG_BREAK : SHORT_BREAK);
+      setTimerState(prev => ({
+        ...prev,
+        pomodoroCount: prev.pomodoroCount + 1,
+        isWorkTime: false
+      }));
+      setTimeLeft(pomodoroCount % 4 === 0 ? LONG_BREAK : SHORT_BREAK);
     } else {
+      setTimerState(prev => ({
+        ...prev,
+        isWorkTime: true
+      }));
       setTimeLeft(WORK_TIME);
     }
-    setIsWorkTime((prev) => !prev);
     setIsRunning(false);
-    playNotificationSound();
-  };
-
-  const playNotificationSound = () => {
-    const audio = new Audio('/notification.mp3');
-    audio.play().catch((error) => console.log('Audio play failed:', error));
   };
 
   const toggleTimer = () => {
@@ -70,7 +88,11 @@ const StudyTimer = () => {
   const resetTimer = () => {
     setIsRunning(false);
     setTimeLeft(WORK_TIME);
-    setIsWorkTime(true);
+    setTimerState({
+      pomodoroCount: 0,
+      totalStudyTime: 0,
+      isWorkTime: true
+    });
   };
 
   const skipInterval = () => {
@@ -95,6 +117,22 @@ const StudyTimer = () => {
     const total = isWorkTime ? WORK_TIME : (pomodoroCount % 4 === 0 ? LONG_BREAK : SHORT_BREAK);
     return ((total - timeLeft) / total) * 100;
   };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        Error loading timer state: {error.message}
+      </Alert>
+    );
+  }
 
   return (
     <div className="timer-app app-container">
